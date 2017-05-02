@@ -1,0 +1,11 @@
+development:
+  # adapter: redis
+  # url: redis://13.124.68.120:6379/1
+  adapter: async
+
+test:
+  adapter: async
+
+production:
+  adapter: redis
+  url: redis://13.124.68.120:6379/1

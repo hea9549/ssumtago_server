@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>SogangLikelion</title>
+
+    <!--Let browser know website is optimized for mobile-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <%= action_cable_meta_tag %>
+    <%= csrf_meta_tags %>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <!--Import Google Icon Font-->
+    <link href="http://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/css/materialize.min.css">
+
+
+    <link rel="stylesheet" href="//cdn.rawgit.com/hiun/NanumSquare/master/nanumsquare.css">
+    <script src="https://cdn.jsdelivr.net/sweetalert2/6.0.1/sweetalert2.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/sweetalert2/6.0.1/sweetalert2.min.css">
+
+    <%= stylesheet_link_tag    'application', media: 'all', 'data-turbolinks-track': 'reload' %>
+    <%= javascript_include_tag 'application', 'data-turbolinks-track': 'reload' %>
+    <!-- Compiled and minified JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/js/materialize.min.js"></script>
+
+  </head>
+
+  <body>
+
+
+    <div class="container">
+      <div class="row">
+        <div class="col s12 scoreWrap">
+          <div>
+            <h3><span class="gryScore"><%= Card.where(team:1).length %></span>그리핀도르 : 슬리데린 <span class="slyScore"><%= Card.where(team:2).length %></span></h3>
+          <!-- </div>
+          <div class="slyScore">
+            <h3></h3> -->
+          </div>
+        </div>
+        <% @cards.each do |card| %>
+          <div class="col s2">
+            <% if card.team == 1 %>
+              <a href="/cards/check/<%= card.id %>">
+                <div class="card gryCard">
+
+                </div>
+              </a>
+            <% elsif  card.team == 2 %>
+              <a href="/cards/check/<%= card.id %>">
+                <div class="card slyCard">
+
+                </div>
+              </a>
+            <% else %>
+              <a href="/cards/check/<%= card.id %>">
+                <div class="card noCard">
+
+                </div>
+              </a>
+            <% end %>
+
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+
+    <!--
+    <table>
+      <thead>
+        <tr>
+          <th>Team</th>
+          <th colspan="3"></th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <% @cards.each do |card| %>
+          <tr>
+            <td><%= card.team %></td>
+            <td><%= link_to 'Show', card %></td>
+            <td><%= link_to 'Edit', edit_card_path(card) %></td>
+            <td><%= link_to 'Destroy', card, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table> -->
+
+    <!-- <br> -->
+
+    <%= link_to '홈으로', root_path %>
+
+<script type="text/javascript">
+  var num = Math.random()*10;
+  if (num > 7) {
+    swal(
+      '방해하기!',
+      '',
+      'error'
+    );
+  };
+</script>
+
+</body>

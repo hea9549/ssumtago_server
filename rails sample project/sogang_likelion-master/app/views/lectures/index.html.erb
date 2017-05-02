@@ -1,0 +1,47 @@
+  <p id="notice"><%= notice %></p>
+
+  <h1><span class="mainTitle on">
+  <% if @type == "1" %>
+    정규 강의 듣기
+  <% else %>
+    보조 강의 듣기
+  <% end %>
+  </span></h1>
+
+  <table class="highlight">
+    <thead>
+      <tr>
+        <th colspan="3">강의 제목</th>
+        <th>주차 별</th>
+        <th>봤어요</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <% @lectures.reverse.each do |lecture| %>
+          <tr>
+            <td colspan="3">
+              <a href="<%= lecture_path(lecture) %>">
+                <%= lecture.title %>
+              </a>
+            </td>
+            <td><%= lecture.week %>주차</td>
+            <td>
+              <% if current_user.checks.where(lecture_id: lecture.id).length == 0 %>
+                X
+              <% else %>
+                O
+              <% end %>
+            </td>
+            <!-- <td><%= link_to 'Edit', edit_lecture_path(lecture) %></td>
+            <td><%= link_to 'Destroy', lecture, method: :delete, data: { confirm: 'Are you sure?' } %></td> -->
+          </tr>
+      <% end %>
+    </tbody>
+  </table>
+
+  <br>
+
+  <% if current_user.isMaster == true %>
+    <%= link_to 'New Lecture', new_lecture_path %>
+  <% end %>

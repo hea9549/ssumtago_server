@@ -1,0 +1,15 @@
+<h1><span class="mainTitle on">
+  <% if @type == "0" %>
+    공지사항 작성하기
+  <% elsif @type == "1" %>
+    자유 게시판 글쓰기
+  <% elsif @type == "2" %>
+    건의 게시판 글쓰기
+  <% elsif @type == "3" %>
+    익명 게시판 글쓰기
+  <% end %>
+</span></h1>
+
+<%= render 'form', board: @board %>
+
+<%= link_to '뒤로가기', "/boards/index/#{@type}" %>

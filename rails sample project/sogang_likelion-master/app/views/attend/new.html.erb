@@ -1,0 +1,20 @@
+<!-- 장부 생성 -->
+<h1>장부 생성</h1>
+
+<%= form_for(@rounds) do |r| %>
+  <div class="field">
+    <%= r.label :month %><br />
+    <%= r.text_field :month %>
+  </div>
+  <div class="field">
+    <%= r.label :week %><br />
+    <%= r.text_field :week %>
+  </div>
+  <div class="field">
+    <%= r.label :count %><br />
+    <%= r.text_field :count %>
+  </div>
+  <div class="actions">
+    <%= r.submit %>
+  </div>
+<% end %>

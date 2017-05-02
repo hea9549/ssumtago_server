@@ -1,0 +1,30 @@
+
+  <h1><%= @user.name %>님 관리 페이지</h1>
+
+  <div>
+    최근 로그인 날짜:
+    <% unless @user.current_sign_in_at.nil? %>
+    <%=  @user.current_sign_in_at.in_time_zone("Seoul") %>
+    <% else %>
+     없음
+    <% end %>
+  </div>
+  <div>
+    좋아요 수: <%= @user.likes.length %>개
+  </div>
+  <div>
+    댓글 수 : <%= @user.comments.length %>개
+  </div>
+  <div>
+    본 강의 수: <%= @user.checks.length %>개
+  </div>
+  <% if @user.team.nil? %>
+
+    <h5>팀 선택 (현재팀 :없음) </h5>
+    <%= link_to "팀 선택하기", "#{@user.id}/new" %>
+
+  <% else %>
+
+    <h5>팀 변경 (현재팀 :<%= @user.team.name %> )</h5>
+    <%= link_to "팀 변경하기", "#{@user.id}/edit" %>
+  <% end %>

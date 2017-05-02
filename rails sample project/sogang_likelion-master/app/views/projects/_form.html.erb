@@ -1,0 +1,50 @@
+<%= form_for(project) do |f| %>
+  <% if project.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(project.errors.count, "error") %> 라는 에러가 발생했습니다!</h2>
+
+      <ul>
+      <% project.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="actions">
+    <div>
+      <%= f.label :title, '웹 사이트 제목' %>
+      <%= f.text_field :title %>
+    </div>
+    <div>
+      <%= f.label :link, '웹 사이트 링크(C9, github, Heroku 등)' %>
+      <%= f.url_field :link %>
+    </div>
+    <div>
+      <%= f.label :gitLink, '깃헙 주소' %>
+      <%= f.url_field :gitLink %>
+    </div>
+    <%= f.label :img, '웹사이트 스크린샷' %>
+    <div class="file-field input-field">
+      <div class="btn bg1">
+        <span>스크린샷</span>
+        <%= f.file_field :img %>
+      </div>
+      <div class="file-path-wrapper">
+        <%= f.text_field :img, class: 'file-path validate', disabled: true %>
+      </div>
+    </div>
+
+    <div class="contentBox">
+      <%= f.label :content, '간단한 설명' %>
+      <%#= f.cktext_area :content, rows: 10 %>
+      <%= f.text_area :content, class: 'materialize-textarea'%>
+    </div>
+    <div>
+      <%= f.hidden_field :user_id, value: current_user.id %>
+    </div>
+    <div>
+    <%= f.submit '완료!', class:'btn waves-effect waves-light bg1' %>
+    </div>
+  </div>
+<% end %>

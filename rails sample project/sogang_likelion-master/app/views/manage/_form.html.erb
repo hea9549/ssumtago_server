@@ -1,0 +1,14 @@
+<div class="container">
+  <%= form_for(user) do |f| %>
+
+    <div class="field">
+      <%= f.collection_radio_buttons(:name, @teams, :id, :name) %>
+    </div>
+
+
+    <div class="actions">
+      <%= f.submit  %>
+    </div>
+
+  <% end %>
+</div>

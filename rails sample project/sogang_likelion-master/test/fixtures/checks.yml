@@ -1,0 +1,11 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  isCheck: false
+  user: one
+  lecture: one
+
+two:
+  isCheck: false
+  user: two
+  lecture: two

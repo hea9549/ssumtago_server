@@ -1,0 +1,51 @@
+
+  <table class="striped">
+    <thead>
+      <tr>
+          <th data-field="id">이름</th>
+          <th data-field="decLink">웹소개 링크</th>
+          <th data-field="web">웹 바로가기</th>
+          <th data-field="git">깃 바로가기</th>
+          <th data-field="web">강의 수강률</th>
+          <th data-field="git">과제 제출율</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <% @users.offset(1).limit(28).each do |u| %>
+        <tr>
+          <td><%= link_to u.name, "#{manage_path}/#{u.id}"  %></td>
+
+          <% if u.projects.length == 0 %>
+            <td>X</td>
+            <td>X</td>
+            <td>X</td>
+            <td>
+              <div class="progress">
+                  <div class="determinate" style="width: <%= u.lecProgress %>"><%= u.lecProgress %></div>
+              </div>
+            </td>
+            <td>
+              <div class="progress">
+                  <div class="determinate" style="width: <%= u.workProgress %>"><%= u.workProgress %></div>
+              </div>
+            </td>
+          <% else %>
+            <td><%= link_to "바로가기", "/projects/#{u.projects.last.id}" %></td>
+            <td><%= link_to "바로가기", "#{u.projects.last.link}", target: :_blank %></td>
+            <td><%= link_to "바로가기", "#{u.projects.last.gitLink}", target: :_blank %></td>
+            <td>
+              <div class="progress">
+                  <div class="determinate" style="width: <%= u.lecProgress %>"><%= u.lecProgress %></div>
+              </div>
+            </td>
+            <td>
+              <div class="progress">
+                  <div class="determinate" style="width: <%= u.workProgress %>"><%= u.workProgress %></div>
+              </div>
+            </td>
+          <% end %>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>

@@ -1,0 +1,8 @@
+// LAYOUTS RELATED
+@mixin min-mq($min)
+  @media screen and (min-width: $min)
+    @content
+
+@mixin minmax-mq($min, $max)
+  @media screen and (min-width: $min) and (max-width: $max - 1)
+    @content
