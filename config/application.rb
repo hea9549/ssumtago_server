@@ -6,11 +6,11 @@ require "active_model/railtie"
 require "active_job/railtie"
 require "active_record/railtie"
 require "action_controller/railtie"
-require "action_view/railtie"
 require "action_mailer/railtie"
+require "action_view/railtie"
 require "action_cable/engine"
-# require "rails/test_unit/railtie"
-# require "sprockets/railtie"
+require "sprockets/railtie"
+require "rails/test_unit/railtie"
 
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
@@ -23,7 +23,7 @@ module SsumtagoApi
     # -- all .rb files in that directory are automatically loaded.
 
     #bootstraps mongoid within applications -- like rails console
-    # Mongoid.load!('./config/mongoid.yml')
+    Mongoid.load!('./config/mongoid.yml')
 
     # Only loads a smaller set of middleware suitable for API only apps.
     # Middleware like session, flash, cookies can be added back manually.
@@ -40,10 +40,5 @@ module SsumtagoApi
           methods: [:get, :post, :put, :delete, :options]
       end
     end
-
-    config.session_store :cookie_store, key: '_interslice_session'
-    config.middleware.use ActionDispatch::Cookies # Required for all session management
-    config.middleware.use ActionDispatch::Session::CookieStore, config.session_options
-
   end
 end

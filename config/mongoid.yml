@@ -5,11 +5,11 @@ development:
     default:
       # Defines the name of the default database that Mongoid can connect to.
       # (required).
-      database: ssumtago_api_development
+      database: ssumtago
       # Provides the hosts the default client can connect to. Must be an array
       # of host:port pairs. (required)
       hosts:
-        - localhost:27017
+        - expirit.co.kr:27017
       options:
         # Change the default write concern. (default = { w: 1 })
         # write:
@@ -24,10 +24,10 @@ development:
         #     - use: web
 
         # The name of the user for authentication.
-        # user: 'user'
+        user: 'ssumtago'
 
         # The password of the user for authentication.
-        # password: 'password'
+        password: 'Tjaxkrh'
 
         # The user's database roles.
         # roles:

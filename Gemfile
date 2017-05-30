@@ -5,10 +5,18 @@ git_source(:github) do |repo_name|
   "https://github.com/#{repo_name}.git"
 end
 
-# 로그인 라이브러리
-gem 'devise_token_auth'
-# 페이스북로그인 라이브러리
-gem 'omniauth-facebook'
+# Debugging Console
+gem 'pry-rails', group: [:development, :test]
+# JWT
+gem 'knock'
+# MongoDB
+gem 'mongoid', git: 'https://github.com/mongodb/mongoid.git'
+# httparty
+gem 'httparty'
+# koala
+gem "koala"
+# JSON response creator
+gem 'acts_as_api'
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
 gem 'rails', '~> 5.0.2'
@@ -19,7 +27,7 @@ gem 'puma', '~> 3.0'
 # Use Redis adapter to run Action Cable in production
 # gem 'redis', '~> 3.0'
 # Use ActiveModel has_secure_password
-# gem 'bcrypt', '~> 3.1.7'
+gem 'bcrypt', '~> 3.1.7'
 
 # Use Capistrano for deployment
 # gem 'capistrano-rails', group: :development
@@ -48,7 +56,3 @@ end
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]
-
-# MongoDB
-# gem 'mongoid', git: 'https://github.com/mongodb/mongoid.git'
-# gem 'mongoid-autoinc'
