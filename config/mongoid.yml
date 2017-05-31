@@ -24,10 +24,10 @@ development:
         #     - use: web
 
         # The name of the user for authentication.
-        user: 'ssumtago'
+        user: <%= ENV["mongo_server_id"] %>
 
         # The password of the user for authentication.
-        password: 'Tjaxkrh'
+        password: <%= ENV["mongo_server_pwd"] %>
 
         # The user's database roles.
         # roles:
@@ -148,10 +148,23 @@ development:
 test:
   clients:
     default:
-      database: ssumtago_api_test
+      database: ssumtago
       hosts:
-        - localhost:27017
+        - expirit.co.kr:27017
       options:
+        user: <%= ENV["mongo_server_id"] %>
+        password: <%= ENV["mongo_server_pwd"] %>
         read:
           mode: :primary
         max_pool_size: 1
+
+production:
+  clients:
+    default:
+      database: ssumtago
+      hosts:
+        - expirit.co.kr:27017
+      options:
+        user: <%= ENV["mongo_server_id"] %>
+        password: <%= ENV["mongo_server_pwd"] %>
+        connect_timeout: 15

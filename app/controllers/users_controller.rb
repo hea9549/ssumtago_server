@@ -18,7 +18,7 @@ class UsersController < ApplicationController
       render json: @fb_user.email
     elsif params[:joinType] == "email"
       @email_user = User.find_by_email(params[:email])
-      
+
       render json: @email_user
     end
   end
