@@ -26,6 +26,9 @@ class UsersController < ApplicationController
       @token = JWT.encode @is_valid, @@hmac_secret, 'HS256'
       @response = {jwt: @token}
       render json: @response
+    else
+      @error_message = {error: "joinType 값을 넣어주세요! (facebook/email)"}
+      render json: @error_message
     end
   end
 
