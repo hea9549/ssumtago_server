@@ -1,6 +1,7 @@
 class User
   include Mongoid::Document
   include ActiveModel::SecurePassword
+  field :email, type: String
   field :password_digest
   has_secure_password
 
@@ -37,16 +38,7 @@ class User
     doc=collection.find(:_id=>BSON::ObjectId(id))
                   .projection({_id:true, email:true})
                   .first
-    return doc.nil? ? nil : User.new(doc)
-  end
-
-  def self.find_by_email email
-    Rails.logger.debug {"getting user #{email}"}
-
-    doc=collection.find(:email=>email)
-                  .projection({_id:true, email:true, password_digest:true})
-                  .first
-    return doc
+    return doc.nil? ? User.new(doc) :doc
   end
 
   def save

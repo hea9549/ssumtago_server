@@ -72,10 +72,6 @@ GEM
     i18n (0.8.1)
     json (2.1.0)
     jwt (1.5.6)
-    knock (2.1.1)
-      bcrypt (~> 3.1)
-      jwt (~> 1.5)
-      rails (>= 4.2)
     koala (3.0.0)
       addressable
       faraday
@@ -170,7 +166,7 @@ DEPENDENCIES
   byebug
   figaro
   httparty
-  knock
+  jwt
   koala
   listen (~> 3.0.5)
   mongoid!

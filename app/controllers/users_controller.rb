@@ -1,6 +1,7 @@
 require 'check_fb_token'
 
 class UsersController < ApplicationController
+  @@hmac_secret = ENV['HAMC_SECRET']
 
   def index
     @users = User.all
@@ -14,12 +15,17 @@ class UsersController < ApplicationController
 
   def check
     if params[:joinType] == "facebook"
-      @fb_user = CheckFbToken.new(params[:access_token])
-      render json: @fb_user.email
+      @fb_user = CheckFbToken.new(params[:password])
+      @is_valid = @fb_user.verify
+      @token = JWT.encode @is_valid, @@hmac_secret, 'HS256'
+      @response = {jwt: @token}
+      render json: @response
     elsif params[:joinType] == "email"
-      @email_user = User.find_by_email(params[:email])
-
-      render json: @email_user
+      @user = User.find_by(email: params[:email])
+      @is_valid = {email: @user["email"], valid: @user.authenticate(params[:password])? true: false}
+      @token = JWT.encode @is_valid, @@hmac_secret, 'HS256'
+      @response = {jwt: @token}
+      render json: @response
     end
   end
 

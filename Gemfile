@@ -8,7 +8,8 @@ end
 # Debugging Console
 gem 'pry-rails', group: [:development, :test]
 # JWT
-gem 'knock'
+# gem 'knock'
+gem 'jwt'
 # MongoDB
 gem 'mongoid', git: 'https://github.com/mongodb/mongoid.git'
 # httparty
