@@ -53,7 +53,7 @@ class UsersController < ApplicationController
       @user = User.new(user_params)
       if @is_valid
         if @user.save
-          @info = {email: @user["email"], role:["user"], creator: "API server", expireTime: Time.now + 24.hours}
+          @info = {email: @user.email, role:["user"], creator: "API server", expireTime: Time.now + 24.hours}
           @token = JWT.encode @info, @@hmac_secret, 'HS256'
           @success = {success:"회원가입에 성공했습니다.", jwt: @token}
           render json: @success, status: :created
@@ -69,7 +69,7 @@ class UsersController < ApplicationController
     elsif params[:user][:joinType] == "email"
       @user = User.new(user_params)
       if @user.save
-        @info = {email: @user["email"], role:["user"], creator: "API server", expireTime: Time.now + 24.hours}
+        @info = {email: @user.email, role:["user"], creator: "API server", expireTime: Time.now + 24.hours}
         @token = JWT.encode @info, @@hmac_secret, 'HS256'
         @success = {success:"회원가입에 성공했습니다.", jwt: @token}
         render json: @success, status: :created
