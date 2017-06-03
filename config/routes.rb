@@ -1,4 +1,4 @@
 Rails.application.routes.draw do
   post 'users' => 'users#create'
-  get 'sessions' => 'users#check'
+  post 'sessions' => 'users#check'
 end
