@@ -8,7 +8,6 @@ end
 # Debugging Console
 gem 'pry-rails', group: [:development, :test]
 # JWT
-# gem 'knock'
 gem 'jwt'
 # MongoDB
 gem 'mongoid', git: 'https://github.com/mongodb/mongoid.git'
@@ -20,6 +19,8 @@ gem "koala"
 gem 'acts_as_api'
 # secret key
 gem "figaro"
+# rabbit mq
+gem "bunny", ">= 2.6.3"
 
 # Use sqlite3 as the database for Active Record
 gem 'sqlite3'

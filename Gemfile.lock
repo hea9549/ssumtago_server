@@ -52,10 +52,13 @@ GEM
       rack (>= 1.1.0)
     addressable (2.5.1)
       public_suffix (~> 2.0, >= 2.0.2)
+    amq-protocol (2.2.0)
     arel (7.1.4)
     bcrypt (3.1.11)
     bson (4.2.1)
     builder (3.2.3)
+    bunny (2.7.0)
+      amq-protocol (>= 2.2.0)
     byebug (9.0.6)
     coderay (1.1.1)
     concurrent-ruby (1.0.5)
@@ -163,6 +166,7 @@ PLATFORMS
 DEPENDENCIES
   acts_as_api
   bcrypt (~> 3.1.7)
+  bunny (>= 2.6.3)
   byebug
   figaro
   httparty

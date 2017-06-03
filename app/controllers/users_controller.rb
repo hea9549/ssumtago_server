@@ -30,7 +30,7 @@ class UsersController < ApplicationController
   end
 
   def login
-      begin @user = User.find_by(email: params[:user][:email])
+      begin @user = User.where(joinType: params[:user][:joinType]).find_by(email: params[:user][:email])
         if @user.authenticate(params[:user][:password])? true: false
           @info = {email: @user["email"], role:["user"], creator: "API server", expireTime: Time.now + 24.hours}
           @token = JWT.encode @info, @@hmac_secret, 'HS256'
@@ -62,7 +62,7 @@ class UsersController < ApplicationController
           render json: @error, status: :unprocessable_entity
         end
       else
-        @error = {error:"페이스북 토큰이 유요하지 않습니다."}
+        @error = {error:"페이스북 토큰이 유효하지 않습니다."}
         render json: @error, status: :unprocessable_entity
       end
 
