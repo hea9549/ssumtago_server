@@ -9,45 +9,89 @@ class UsersController < ApplicationController
   end
 
   def show
-    @user = current_user
-    render json: @user
-  end
-
-  def check
-    if params[:joinType] == "facebook"
-      @fb_user = CheckFbToken.new(params[:password])
-      @is_valid = @fb_user.verify
-      @token = JWT.encode @is_valid, @@hmac_secret, 'HS256'
-      @response = {jwt: @token}
-      render json: @response
-    elsif params[:joinType] == "email"
-      @user = User.find_by(email: params[:email])
-      @is_valid = {email: @user["email"], valid: @user.authenticate(params[:password])? true: false}
-      @token = JWT.encode @is_valid, @@hmac_secret, 'HS256'
-      @response = {jwt: @token}
-      render json: @response
+    if request.headers["jwt"]
+      @jwt = request.headers["jwt"]
+      begin @info = token_check(@jwt)[0]
+        if Time.now <= Time.parse(@info["expireTime"])
+          @user = User.find_by(email: @info["email"])
+          render json: @user
+        else
+          @error = {error: "Token이 만기됐습니다!"}
+          render json: @error
+        end
+      rescue JWT::IncorrectAlgorithm
+        @error = {error: "올바른 Token 값을 넣어주세요!"}
+        render json: @error
+      end
     else
-      @error_message = {error: "joinType 값을 넣어주세요! (facebook/email)"}
-      render json: @error_message
+      @error = {error: "Header에 Token 값을 넣어주세요!"}
+      render json: @error
     end
   end
 
+  def login
+      begin @user = User.find_by(email: params[:user][:email])
+        if @user.authenticate(params[:user][:password])? true: false
+          @info = {email: @user["email"], role:["user"], creator: "API server", expireTime: Time.now + 24.hours}
+          @token = JWT.encode @info, @@hmac_secret, 'HS256'
+          @success = {success:"로그인에 성공했습니다.", jwt: @token}
+          render json: @success, status: :created
+        else
+          @error = {error: "비밀번호가 올바르지 않습니다."}
+          render json: @error, status: :unprocessable_entity
+        end
+      rescue Mongoid::Errors::DocumentNotFound
+        @error = {error: "존재하지 않는 이메일입니다."}
+        render json: @error, status: :unprocessable_entity
+      end
+  end
+
   def create
-    @user = User.new(user_params)
-    if @user.save
-      render json: @user, status: :created
+    if params[:user][:joinType] == "facebook"
+      @fb_user = CheckFbToken.new(params[:user][:password])
+      @is_valid = @fb_user.verify
+      @user = User.new(user_params)
+      if @is_valid
+        if @user.save
+          @info = {email: @user["email"], role:["user"], creator: "API server", expireTime: Time.now + 24.hours}
+          @token = JWT.encode @info, @@hmac_secret, 'HS256'
+          @success = {success:"회원가입에 성공했습니다.", jwt: @token}
+          render json: @success, status: :created
+        else
+          @error = {error:"저장이 실패했습니다."}
+          render json: @error, status: :unprocessable_entity
+        end
+      else
+        @error = {error:"페이스북 토큰이 유요하지 않습니다."}
+        render json: @error, status: :unprocessable_entity
+      end
+
+    elsif params[:user][:joinType] == "email"
+      @user = User.new(user_params)
+      if @user.save
+        @info = {email: @user["email"], role:["user"], creator: "API server", expireTime: Time.now + 24.hours}
+        @token = JWT.encode @info, @@hmac_secret, 'HS256'
+        @success = {success:"회원가입에 성공했습니다.", jwt: @token}
+        render json: @success, status: :created
+      else
+        @error = {error:"저장이 실패했습니다."}
+        render json: @error, status: :unprocessable_entity
+      end
     else
-      render json: @user.errors, status: :unprocessable_entity
+      @error = {error: "joinType 값을 넣어주세요! (facebook/email)"}
+      render json: @error, status: :unprocessable_entity
     end
   end
 
   private
 
-    # def set_user
-    #   @user = User.find(params[:todo_list_id])
-    # end
-
     def user_params
-      params.require(:user).permit(:email, :password, :name, :sex, :age, :joinType, :fcmToken, :createdTime, :updatedTime, :lastSurveyed, :ssums)
+      params.require(:user).permit(:email, :password, :joinType, :name, :sex, :age, :fcmToken, :createdTime, :updatedTime, :lastSurveyed, :ssums)
     end
+
+    def token_check request_token
+      decoded_token = JWT.decode request_token, @@hmac_secret, true, { :algorithm => 'HS256' }
+      return decoded_token
+    end
+
 end
