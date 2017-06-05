@@ -14,7 +14,13 @@ class UsersController < ApplicationController
       begin @info = token_check(@jwt)[0]
         if Time.now <= Time.parse(@info["expireTime"])
           @user = User.find_by(email: @info["email"])
-          render json: @user, status: :ok
+          @info = {
+            email: @user["email"],
+            name: @user["name"],
+            sex: @user["sex"],
+            ssums: @user["ssums"]
+          }
+          render json: @info, status: :ok
         else
           @error = {msg: "Token이 만기됐습니다!", code:"401", time: Time.now}
           render json: @error, status: :unauthorized

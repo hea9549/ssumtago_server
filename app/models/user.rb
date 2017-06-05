@@ -3,6 +3,17 @@ class User
   include ActiveModel::SecurePassword
   field :email, type: String
   field :password_digest
+  field :name, type: String
+  field :sex, type: String
+  field :age, type: String
+  field :joinType, type: String
+  field :fcmToken, type: String
+  field :createdTime, type: Date
+  field :updatedTime, type: Date
+  field :updatedTime, type: Date
+  field :updatedTime, type: Date
+  field :lastSurveyed, type: Date
+  field :ssums, type: Array
   has_secure_password
 
   attr_accessor :email, :name, :sex, :age, :joinType, :fcmToken, :createdTime, :updatedTime, :lastSurveyed, :ssums
@@ -16,8 +27,8 @@ class User
     @age=params[:age]
     @joinType=params[:joinType]
     @fcmToken=params[:fcmToken]
-    @createdTime=params[:createdTime]
-    @updatedTime=params[:updatedTime]
+    @createdTime=Time.now
+    @updatedTime=Time.now
     @lastSurveyed=params[:lastSurveyed]
     @ssums=params[:ssums]
   end
