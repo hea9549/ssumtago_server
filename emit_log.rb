@@ -4,7 +4,7 @@
 require "bunny"
 require 'json'
 
-conn = Bunny.new
+conn = Bunny.new("amqp://ssumtago:Tjaxkrh@127.0.0.1")
 conn.start
 
 ch   = conn.create_channel
