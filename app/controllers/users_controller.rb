@@ -14,18 +14,18 @@ class UsersController < ApplicationController
       begin @info = token_check(@jwt)[0]
         if Time.now <= Time.parse(@info["expireTime"])
           @user = User.find_by(email: @info["email"])
-          render json: @user
+          render json: @user, status: :ok
         else
-          @error = {error: "Token이 만기됐습니다!"}
-          render json: @error
+          @error = {msg: "Token이 만기됐습니다!", code:"401", time: Time.now}
+          render json: @error, status: :unauthorized
         end
       rescue JWT::IncorrectAlgorithm
-        @error = {error: "올바른 Token 값을 넣어주세요!"}
-        render json: @error
+        @error = {msg: "올바른 Token 값을 넣어주세요!", code:"401", time:Time.now}
+        render json: @error, status: :unauthorized
       end
     else
-      @error = {error: "Header에 Token 값을 넣어주세요!"}
-      render json: @error
+      @error = {msg: "Header에 Token 값을 넣어주세요!", code:"400", time:Time.now}
+      render json: @error, status: :bad_request
     end
   end
 
@@ -37,12 +37,12 @@ class UsersController < ApplicationController
           @success = {success:"로그인에 성공했습니다.", jwt: @token}
           render json: @success, status: :created
         else
-          @error = {error: "비밀번호가 올바르지 않습니다."}
-          render json: @error, status: :unprocessable_entity
+          @error = {msg: "비밀번호가 올바르지 않습니다.", code:"400", time:Time.now}
+          render json: @error, status: :bad_request
         end
       rescue Mongoid::Errors::DocumentNotFound
-        @error = {error: "존재하지 않는 이메일입니다."}
-        render json: @error, status: :unprocessable_entity
+        @error = {msg: "존재하지 않는 이메일입니다.", code:"400", time:Time.now}
+        render json: @error, status: :bad_request
       end
   end
 
@@ -58,12 +58,12 @@ class UsersController < ApplicationController
           @success = {success:"회원가입에 성공했습니다.", jwt: @token}
           render json: @success, status: :created
         else
-          @error = {error:"저장이 실패했습니다."}
-          render json: @error, status: :unprocessable_entity
+          @error = {msg:"서버 에러로 저장이 실패했습니다.", code:"500", time:Time.now}
+          render json: @error, status: :internal_server_error
         end
       else
-        @error = {error:"페이스북 토큰이 유효하지 않습니다."}
-        render json: @error, status: :unprocessable_entity
+        @error = {msg:"페이스북 토큰이 유효하지 않습니다.", code:"401", time:Time.now}
+        render json: @error, status: :unauthorized
       end
 
     elsif params[:user][:joinType] == "email"
@@ -74,12 +74,12 @@ class UsersController < ApplicationController
         @success = {success:"회원가입에 성공했습니다.", jwt: @token}
         render json: @success, status: :created
       else
-        @error = {error:"저장이 실패했습니다."}
-        render json: @error, status: :unprocessable_entity
+        @error = {msg:"서버 에러로 저장이 실패했습니다.", code:"500", time:Time.now}
+        render json: @error, status: :internal_server_error
       end
     else
-      @error = {error: "joinType 값을 넣어주세요! (facebook/email)"}
-      render json: @error, status: :unprocessable_entity
+      @error = {msg: "joinType 값을 넣어주세요! (facebook/email)", code:"400", time:Time.now}
+      render json: @error, status: :bad_request
     end
   end
 
