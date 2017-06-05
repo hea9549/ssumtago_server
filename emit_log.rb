@@ -5,7 +5,7 @@ require "bunny"
 require 'json'
 
 # conn = Bunny.new("amqp://ssumtago:Tjaxkrh@127.0.0.1")
-conn = Bunny.new(:host => "http://expirit.co.kr", :vhost => "pushHost", :user => "ssumtago", :password => "Tjaxkrh")
+conn = Bunny.new(:host => "expirit.co.kr", :vhost => "pushHost", :user => "ssumtago", :password => "Tjaxkrh")
 conn.start
 
 ch   = conn.create_channel
