@@ -31,6 +31,9 @@ class UsersController < ApplicationController
       rescue JWT::VerificationError
         @error = {msg: "올바른 Token 값을 넣어주세요!", code:"401", time:Time.now}
         render json: @error, status: :unauthorized
+      rescue JWT::DecodeError
+        @error = {msg: "올바른 Token 값을 넣어주세요!", code:"401", time:Time.now}
+        render json: @error, status: :unauthorized
       end
     else
       @error = {msg: "Header에 Token 값을 넣어주세요!", code:"400", time:Time.now}
