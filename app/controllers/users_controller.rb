@@ -58,9 +58,8 @@ class UsersController < ApplicationController
   def create
     if params[:user][:joinType] == "facebook"
       @fb_user = CheckFbToken.new(params[:user][:password])
-      @is_valid = @fb_user.verify
-      @user = User.new(user_params)
-      if @is_valid
+      begin @is_valid = @fb_user.verify
+        @user = User.new(user_params)
         if @user.save
           @info = {email: @user.email, role:["user"], creator: "API server", expireTime: Time.now + 24.hours}
           @token = JWT.encode @info, @@hmac_secret, 'HS256'
@@ -70,7 +69,7 @@ class UsersController < ApplicationController
           @error = {msg:"서버 에러로 저장이 실패했습니다.", code:"500", time:Time.now}
           render json: @error, status: :internal_server_error
         end
-      else
+      rescue Koala::Facebook::AuthenticationError
         @error = {msg:"페이스북 토큰이 유효하지 않습니다.", code:"401", time:Time.now}
         render json: @error, status: :unauthorized
       end
