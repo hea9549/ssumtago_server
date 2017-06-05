@@ -2,16 +2,17 @@
 # encoding: utf-8
 
 require "bunny"
+require 'json'
 
 conn = Bunny.new
 conn.start
 
 ch   = conn.create_channel
-x    = ch.fanout("logs")
+q    = ch.queue("ssumPredict")
+requestSurvey  = {hello:"GO!"}
+ch.default_exchange.publish( requestSurvey.to_json, :routing_key => q.name )
 
-msg  = ARGV.empty? ? "Hello World!" : ARGV.join(" ")
 
-x.publish(msg)
-puts " [x] Sent #{msg}"
+puts " [x] Sent #{requestSurvey.to_json}"
 
 conn.close
