@@ -35,7 +35,7 @@ class UsersController < ApplicationController
           @info = {email: @user["email"], role:["user"], creator: "API server", expireTime: Time.now + 24.hours}
           @token = JWT.encode @info, @@hmac_secret, 'HS256'
           @success = {success:"로그인에 성공했습니다.", jwt: @token}
-          render json: @success, status: :created
+          render json: @success, status: :ok
         else
           @error = {msg: "비밀번호가 올바르지 않습니다.", code:"400", time:Time.now}
           render json: @error, status: :bad_request
