@@ -5,8 +5,8 @@ require "bunny"
 require 'json'
 
 # conn = Bunny.new("amqp://ssumtago:Tjaxkrh@127.0.0.1")
-pwd = ENV["RabbitMQ_pwd"]
-conn = Bunny.new(:host => "expirit.co.kr", :vhost => "pushHost", :user => "ssumtago", :password => pwd)
+# pwd = ENV["RabbitMQ_pwd"]
+conn = Bunny.new(:host => "expirit.co.kr", :vhost => "pushHost", :user => "ssumtago", password: 'Tjaxkrh')
 conn.start
 
 ch   = conn.create_channel
