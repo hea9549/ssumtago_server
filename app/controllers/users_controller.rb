@@ -1,6 +1,7 @@
 require 'check_fb_token'
 
 class UsersController < ApplicationController
+  before_action :check_jwt, only:[:show]
   @@hmac_secret = ENV['HAMC_SECRET']
 
   def index
@@ -9,36 +10,7 @@ class UsersController < ApplicationController
   end
 
   def show
-    if request.headers["jwt"]
-      @jwt = request.headers["jwt"]
-      begin @info = token_check(@jwt)[0]
-        if Time.now <= Time.parse(@info["expireTime"])
-          @user = User.find_by(email: @info["email"])
-          @info = {
-            email: @user["email"],
-            name: @user["name"],
-            sex: @user["sex"],
-            ssums: @user["ssums"]
-          }
-          render json: @info, status: :ok
-        else
-          @error = {msg: "Token이 만기됐습니다!", code:"401", time: Time.now}
-          render json: @error, status: :unauthorized
-        end
-      rescue JWT::IncorrectAlgorithm
-        @error = {msg: "올바른 Token 값을 넣어주세요!", code:"401", time:Time.now}
-        render json: @error, status: :unauthorized
-      rescue JWT::VerificationError
-        @error = {msg: "올바른 Token 값을 넣어주세요!", code:"401", time:Time.now}
-        render json: @error, status: :unauthorized
-      rescue JWT::DecodeError
-        @error = {msg: "올바른 Token 값을 넣어주세요!", code:"401", time:Time.now}
-        render json: @error, status: :unauthorized
-      end
-    else
-      @error = {msg: "Header에 Token 값을 넣어주세요!", code:"400", time:Time.now}
-      render json: @error, status: :bad_request
-    end
+    render json: @decoded_token, status: :ok
   end
 
   def login
@@ -92,6 +64,27 @@ class UsersController < ApplicationController
       @error = {msg: "joinType 값을 넣어주세요! (facebook/email)", code:"400", time:Time.now}
       render json: @error, status: :bad_request
     end
+  end
+
+  def fcm_push
+    @headers = {
+      "Content-Type" => "application/json",
+      "Authorization" => "key=AAAAqms91F8:APA91bGjBdzhydJBsXyJt-1KVPVwiODVugMMlmyqcH1PrNo35HZ0XUsQujcht7_DywzWrEkIFXirXkIbtiUS8pioQwtrNxXRaX_LmcmI3IVPOhpX655J-pfR5c8CH6D68ncbteOoDwn8"
+    }
+    @body = {
+      "data" => {
+        "score" => "5x1",
+        "time" => "15:10"
+      },
+      "to" => "bk3RNwTe3H0:CI2k_HHwgIpoDKCIZvvDMExUdFQ3P1..."
+    }
+    @result = HTTParty.post(
+      "https://fcm.googleapis.com/fcm/send",
+      headers: @headers,
+      body: @body.to_json
+    )
+
+    return @result
   end
 
   private

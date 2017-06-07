@@ -11,6 +11,8 @@ gem 'pry-rails', group: [:development, :test]
 gem 'jwt'
 # MongoDB
 gem 'mongoid', git: 'https://github.com/mongodb/mongoid.git'
+# mongoid auto increment
+gem 'mongoid-autoinc'
 # httparty
 gem 'httparty'
 # koala
