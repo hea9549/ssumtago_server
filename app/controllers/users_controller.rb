@@ -14,6 +14,26 @@ class UsersController < ApplicationController
   end
 
   def login
+    # 페이스북 로그인
+    if params[:joinType] == "facebook"
+      @fb_user = CheckFbToken.new(params[:password])
+
+      
+      begin @fb_email = @fb_user.verify[:email]
+
+
+      #토큰이 잘못된 경우
+      rescue Koala::Facebook::AuthenticationError
+        @error = {msg:"페이스북 토큰이 유효하지 않습니다.", code:"401", time:Time.now}
+        render json: @error, status: :unauthorized
+      end
+    elsif params[:joinType] == "email"
+
+    # joinType 값이 올바르지 않으면 에러
+    else
+      @error = {msg: "joinType 값을 넣어주세요! (email/facebook)", code:"400", time:Time.now}
+      render json: @error, status: :bad_request
+    end
       begin @user = User.where(joinType: params[:joinType]).find_by(email: params[:email])
         if @user.authenticate(Digest::SHA1.hexdigest(params[:password]))? true: false
           @info = {email: @user["email"], role:["user"], creator: "API server", expireTime: Time.now + 24.hours}

@@ -21,6 +21,7 @@ class ReportsController < ApplicationController
     end
 
     user.reports << report
+    user.last_surveyed = DateTime.now
     user.save
 
     # RabbitMQ로 Q보내기
@@ -28,7 +29,7 @@ class ReportsController < ApplicationController
     conn.start
     ch   = conn.create_channel
     q    = ch.queue("ssumPredict")
-    requestSurvey = {usedId: @user.id,
+    requestSurvey = {userId: @user.id,
                      surveyId: params[:surveyId],
                      modelId: params[:modelId],
                      version: params[:version],
