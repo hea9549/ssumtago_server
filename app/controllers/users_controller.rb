@@ -15,7 +15,7 @@ class UsersController < ApplicationController
 
   def login
       begin @user = User.where(joinType: params[:user][:joinType]).find_by(email: params[:user][:email])
-        if @user.authenticate(params[:user][:password])? true: false
+        if @user.authenticate(Digest::SHA1.hexdigest(params[:user][:password]))? true: false
           @info = {email: @user["email"], role:["user"], creator: "API server", expireTime: Time.now + 24.hours}
           @token = JWT.encode @info, @@hmac_secret, 'HS256'
           @success = {success:"로그인에 성공했습니다.", jwt: @token}
@@ -25,32 +25,36 @@ class UsersController < ApplicationController
           render json: @error, status: :bad_request
         end
       rescue Mongoid::Errors::DocumentNotFound
-        @error = {msg: "존재하지 않는 이메일입니다.", code:"400", time:Time.now}
-        render json: @error, status: :bad_request
+        if params[:user][:joinType] == "facebook"
+          @fb_user = CheckFbToken.new(params[:user][:password])
+          begin @is_valid = @fb_user.verify
+            @user = User.new(user_params)
+            @user.password = Digest::SHA1.hexdigest(params[:user][:password])
+            puts @user.save!
+            if @user.save
+              @info = {email: @user.email, role:["user"], creator: "API server", expireTime: Time.now + 24.hours}
+              @token = JWT.encode @info, @@hmac_secret, 'HS256'
+              @success = {success:"회원가입에 성공했습니다.", jwt: @token}
+              render json: @success, status: :created
+            else
+              @error = {msg:"서버 에러로 저장이 실패했습니다.", code:"500", time:Time.now}
+              render json: @error, status: :internal_server_error
+            end
+          rescue Koala::Facebook::AuthenticationError
+            @error = {msg:"페이스북 토큰이 유효하지 않습니다.", code:"401", time:Time.now}
+            render json: @error, status: :unauthorized
+          end
+        else
+          @error = {msg: "존재하지 않는 이메일입니다.", code:"400", time:Time.now}
+          render json: @error, status: :bad_request
+        end
       end
   end
 
   def create
-    if params[:user][:joinType] == "facebook"
-      @fb_user = CheckFbToken.new(params[:user][:password])
-      begin @is_valid = @fb_user.verify
-        @user = User.new(user_params)
-        if @user.save
-          @info = {email: @user.email, role:["user"], creator: "API server", expireTime: Time.now + 24.hours}
-          @token = JWT.encode @info, @@hmac_secret, 'HS256'
-          @success = {success:"회원가입에 성공했습니다.", jwt: @token}
-          render json: @success, status: :created
-        else
-          @error = {msg:"서버 에러로 저장이 실패했습니다.", code:"500", time:Time.now}
-          render json: @error, status: :internal_server_error
-        end
-      rescue Koala::Facebook::AuthenticationError
-        @error = {msg:"페이스북 토큰이 유효하지 않습니다.", code:"401", time:Time.now}
-        render json: @error, status: :unauthorized
-      end
-
-    elsif params[:user][:joinType] == "email"
+    if params[:user][:joinType] == "email"
       @user = User.new(user_params)
+      @user.password = Digest::SHA1.hexdigest(params[:user][:password])
       if @user.save
         @info = {email: @user.email, role:["user"], creator: "API server", expireTime: Time.now + 24.hours}
         @token = JWT.encode @info, @@hmac_secret, 'HS256'
@@ -61,7 +65,7 @@ class UsersController < ApplicationController
         render json: @error, status: :internal_server_error
       end
     else
-      @error = {msg: "joinType 값을 넣어주세요! (facebook/email)", code:"400", time:Time.now}
+      @error = {msg: "joinType 값을 넣어주세요! (email)", code:"400", time:Time.now}
       render json: @error, status: :bad_request
     end
   end
@@ -91,11 +95,6 @@ class UsersController < ApplicationController
 
     def user_params
       params.require(:user).permit(:email, :password, :joinType, :name, :sex, :age, :fcmToken, :createdTime, :updatedTime, :lastSurveyed, :ssums)
-    end
-
-    def token_check request_token
-      decoded_token = JWT.decode request_token, @@hmac_secret, true, { :algorithm => 'HS256' }
-      return decoded_token
     end
 
 end

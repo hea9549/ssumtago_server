@@ -1,7 +1,7 @@
 require "bunny"
 require 'json'
 
-class SurveysController < ApplicationController
+class ReportsController < ApplicationController
   before_action :check_jwt, only: [:input_survey]
   @@rabbitMQ_secret = ENV['RabbitMQ_pwd']
 
@@ -10,7 +10,7 @@ class SurveysController < ApplicationController
     conn.start
     ch   = conn.create_channel
     q    = ch.queue("ssumPredict")
-    requestSurvey = {usedId: @user.id, surveyId: 1, version: "1.0.1", data: [{questionCode: "01000120001", answerCode: "02001001"},
+    requestSurvey = {usedId: @user.id, surveyId: 1, modelId: 1, version: "1.0.1", data: [{questionCode: "01000120001", answerCode: "02001001"},
                                                                              {questionCode: "01000120002", answerCode: "02002003"},
                                                                              {questionCode: "01000120003", answerCode: "02003004"},
                                                                              {questionCode: "01000120004", answerCode: "02004004"},
