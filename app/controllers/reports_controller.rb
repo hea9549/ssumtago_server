@@ -13,6 +13,8 @@ class ReportsController < ApplicationController
     report.survey_id = params[:surveyId]
     report.model_id = params[:modelId]
     report.version = params[:version]
+    report.requestTime = DateTime.now
+    report.is_processed = false
     params[:data].each do |data|
       ssumji = Ssumji.new
       ssumji.questionCode = data[:questionCode]
@@ -20,7 +22,7 @@ class ReportsController < ApplicationController
       report.data << ssumji
     end
 
-    user.reports << report
+    user.predictReports << report
     user.last_surveyed = DateTime.now
     user.save
 
@@ -29,11 +31,11 @@ class ReportsController < ApplicationController
     conn.start
     ch   = conn.create_channel
     q    = ch.queue("ssumPredict")
-    requestSurvey = {userId: @user.id,
-                     requestTime: DateTime.now,
-                     surveyId: params[:surveyId],
-                     modelId: params[:modelId],
-                     version: params[:version],
+    requestSurvey = {userId: @user.id.to_s,
+                     requestTime: report.requestTime,
+                     surveyId: report.survey_id,
+                     modelId: report.model_id,
+                     version: report.version,
                      data: params[:data]
                     }
     ch.default_exchange.publish( requestSurvey.to_json, :routing_key => q.name )
@@ -46,19 +48,14 @@ class ReportsController < ApplicationController
   def result
     # 들어온 설문지 결과값 저장하기
     user = User.find(params[:userId])
-    user.reports.find_by(survey_id:params[:surveyId]).result = params[:predictResult]
-
-    params[:data].each do |data|
-      ssumji = Ssumji.new
-      ssumji.questionCode = data[:questionCode]
-      ssumji.answerCode = data[:answerCode]
-      report.data << ssumji
-    end
-
-    user.reports << report
+    report = user.predictReports.find_by(survey_id:params[:surveyId])
+    report.result = params[:predictResult]
+    report.is_processed = true
+    report.response_time = DateTime.now
+    user.predictReports << report
     user.save
 
-    @success = {success:"결과 응답을 받았습니다.", userEmail:"#{user.email}", surveyId:"#{params[:surveyId]}", predictResult:"#{params[:predictResult]}"}
+    @success = {success:"예측 결과 응답을 받았습니다.", userEmail:"#{user.email}", surveyId:"#{params[:surveyId]}", predictResult:"#{params[:predictResult]}"}
     render json: @success, status: :ok
   end
 

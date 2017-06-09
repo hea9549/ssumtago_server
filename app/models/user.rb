@@ -9,9 +9,9 @@ class User
   field :age, type: String
   field :joinType, as: :join_type, type: String
   field :fcmToken, as: :fcm_token, type: String
-  field :lastSurveyed, as: :last_surveyed, type: Date
+  field :lastSurveyed, as: :last_surveyed, type: DateTime
   # field :ssums, type: Array, default: []
-  embeds_many :reports, class_name:"Report"
+  embeds_many :predictReports, class_name:"Report"
   has_secure_password
 
   # attr_accessor :email, :name, :sex, :age, :joinType, :fcmToken, :lastSurveyed, :ssums
