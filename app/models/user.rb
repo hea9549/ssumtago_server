@@ -11,7 +11,7 @@ class User
   field :fcmToken, as: :fcm_token, type: String
   field :lastSurveyed, as: :last_surveyed, type: Date
   # field :ssums, type: Array, default: []
-  # embeds_many :ssums, class_name:"Report"
+  # embeds_many :reports, class_name:"Report"
   has_secure_password
 
   # attr_accessor :email, :name, :sex, :age, :joinType, :fcmToken, :lastSurveyed, :ssums

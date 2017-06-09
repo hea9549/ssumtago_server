@@ -14,8 +14,8 @@ class UsersController < ApplicationController
   end
 
   def login
-      begin @user = User.where(joinType: params[:user][:joinType]).find_by(email: params[:user][:email])
-        if @user.authenticate(Digest::SHA1.hexdigest(params[:user][:password]))? true: false
+      begin @user = User.where(joinType: params[:joinType]).find_by(email: params[:email])
+        if @user.authenticate(Digest::SHA1.hexdigest(params[:password]))? true: false
           @info = {email: @user["email"], role:["user"], creator: "API server", expireTime: Time.now + 24.hours}
           @token = JWT.encode @info, @@hmac_secret, 'HS256'
           @success = {success:"로그인에 성공했습니다.", jwt: @token}
@@ -25,11 +25,11 @@ class UsersController < ApplicationController
           render json: @error, status: :bad_request
         end
       rescue Mongoid::Errors::DocumentNotFound
-        if params[:user][:joinType] == "facebook"
-          @fb_user = CheckFbToken.new(params[:user][:password])
+        if params[:joinType] == "facebook"
+          @fb_user = CheckFbToken.new(params[:password])
           begin @is_valid = @fb_user.verify
             @user = User.new(user_params)
-            @user.password = Digest::SHA1.hexdigest(params[:user][:password])
+            @user.password = Digest::SHA1.hexdigest(params[:password])
             puts @user.save!
             if @user.save
               @info = {email: @user.email, role:["user"], creator: "API server", expireTime: Time.now + 24.hours}
@@ -53,15 +53,15 @@ class UsersController < ApplicationController
 
   def create
     # joinType이 email인지 확인
-    if params[:user][:joinType] == "email"
+    if params[:joinType] == "email"
       # 존재하는 회원인지 확인 후 존재하면 에러
-      begin @user = User.find_by(email: params[:user][:email])
+      begin @user = User.find_by(email: params[:email])
         @error = {msg: "이미 가입된 이메일입니다.", code:"400", time:Time.now}
         render json: @error, status: :bad_request
       # 존재하지 않으면 가입
       rescue Mongoid::Errors::DocumentNotFound
         @user = User.new(user_params)
-        @user.password = Digest::SHA1.hexdigest(params[:user][:password])
+        @user.password = Digest::SHA1.hexdigest(params[:password])
         if @user.save
           @info = {email: @user.email, role:["user"], creator: "API server", expireTime: Time.now + 24.hours}
           @token = JWT.encode @info, @@hmac_secret, 'HS256'
@@ -103,7 +103,7 @@ class UsersController < ApplicationController
   private
 
     def user_params
-      params.require(:user).permit(:email, :password, :joinType, :name, :sex, :age, :fcmToken, :createdTime, :updatedTime, :lastSurveyed, :ssums)
+      params.permit(:email, :password, :joinType, :name, :sex, :age, :fcmToken, :createdTime, :updatedTime, :lastSurveyed, :ssums)
     end
 
 end
