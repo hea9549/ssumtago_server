@@ -30,6 +30,7 @@ class ReportsController < ApplicationController
     ch   = conn.create_channel
     q    = ch.queue("ssumPredict")
     requestSurvey = {userId: @user.id,
+                     requestTime: DateTime.now,
                      surveyId: params[:surveyId],
                      modelId: params[:modelId],
                      version: params[:version],
