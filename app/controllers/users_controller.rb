@@ -52,18 +52,27 @@ class UsersController < ApplicationController
   end
 
   def create
+    # joinType이 email인지 확인
     if params[:user][:joinType] == "email"
-      @user = User.new(user_params)
-      @user.password = Digest::SHA1.hexdigest(params[:user][:password])
-      if @user.save
-        @info = {email: @user.email, role:["user"], creator: "API server", expireTime: Time.now + 24.hours}
-        @token = JWT.encode @info, @@hmac_secret, 'HS256'
-        @success = {success:"회원가입에 성공했습니다.", jwt: @token}
-        render json: @success, status: :created
-      else
-        @error = {msg:"서버 에러로 저장이 실패했습니다.", code:"500", time:Time.now}
-        render json: @error, status: :internal_server_error
+      # 존재하는 회원인지 확인 후 존재하면 에러
+      begin @user = User.find_by(email: params[:user][:email])
+        @error = {msg: "이미 가입된 이메일입니다.", code:"400", time:Time.now}
+        render json: @error, status: :bad_request
+      # 존재하지 않으면 가입
+      rescue Mongoid::Errors::DocumentNotFound
+        @user = User.new(user_params)
+        @user.password = Digest::SHA1.hexdigest(params[:user][:password])
+        if @user.save
+          @info = {email: @user.email, role:["user"], creator: "API server", expireTime: Time.now + 24.hours}
+          @token = JWT.encode @info, @@hmac_secret, 'HS256'
+          @success = {success:"회원가입에 성공했습니다.", jwt: @token}
+          render json: @success, status: :created
+        else
+          @error = {msg:"서버 에러로 저장이 실패했습니다.", code:"500", time:Time.now}
+          render json: @error, status: :internal_server_error
+        end
       end
+    # joinType이 email이 아니라면 에러
     else
       @error = {msg: "joinType 값을 넣어주세요! (email)", code:"400", time:Time.now}
       render json: @error, status: :bad_request
