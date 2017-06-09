@@ -6,36 +6,34 @@ class ReportsController < ApplicationController
   @@rabbitMQ_secret = ENV['RabbitMQ_pwd']
 
   def input_survey
+
+    # 들어온 설문지 결과값 저장하기
+    user = User.find(@user.id)
+    report = Report.new
+    report.survey_id = params[:surveyId]
+    report.model_id = params[:modelId]
+    report.version = params[:version]
+    params[:data].each do |data|
+      ssumji = Ssumji.new
+      ssumji.questionCode = data[:questionCode]
+      ssumji.answerCode = data[:answerCode]
+      report.data << ssumji
+    end
+
+    user.reports << report
+    user.save
+
+    # RabbitMQ로 Q보내기
     conn = Bunny.new(:host => "expirit.co.kr", :vhost => "pushHost", :user => "ssumtago", password: @@rabbitMQ_secret)
     conn.start
     ch   = conn.create_channel
     q    = ch.queue("ssumPredict")
-    requestSurvey = {usedId: @user.id, surveyId: 1, modelId: 1, version: "1.0.1", data: [{questionCode: "01000120001", answerCode: "02001001"},
-                                                                                         {questionCode: "01000120002", answerCode: "02002003"},
-                                                                                         {questionCode: "01000120003", answerCode: "02003004"},
-                                                                                         {questionCode: "01000120004", answerCode: "02004004"},
-                                                                                         {questionCode: "01000120005", answerCode: "02005001"},
-                                                                                         {questionCode: "01000112006", answerCode: "02006036"},
-                                                                                         {questionCode: "01200120007", answerCode: "02007003"},
-                                                                                         {questionCode: "01200120008", answerCode: "02008001"},
-                                                                                         {questionCode: "01000120009", answerCode: "02009005"},
-                                                                                         {questionCode: "01100120010", answerCode: "02010004"},
-                                                                                         {questionCode: "01200120011", answerCode: "02011003"},
-                                                                                         {questionCode: "01200000012", answerCode: "02012002"},
-                                                                                         {questionCode: "01100120013", answerCode: "02013003"},
-                                                                                         {questionCode: "01200120014", answerCode: "02014003"},
-                                                                                         {questionCode: "01000120015", answerCode: "02015002"},
-                                                                                         {questionCode: "01100120016", answerCode: "02016002"},
-                                                                                         {questionCode: "01200120017", answerCode: "02017001"},
-                                                                                         {questionCode: "01200111018", answerCode: "02018063"},
-                                                                                         {questionCode: "01000120019", answerCode: "02019003"},
-                                                                                         {questionCode: "01000120020", answerCode: "02020001"},
-                                                                                         {questionCode: "01000120021", answerCode: "02021002"},
-                                                                                         {questionCode: "01000120022", answerCode: "02022004"},
-                                                                                         {questionCode: "01000120023", answerCode: "02023004"},
-                                                                                         {questionCode: "01000120024", answerCode: "02024003"},
-                                                                                         {questionCode: "01010000025", answerCode: "02025021"},
-                                                                                         {questionCode: "01000120026", answerCode: "02026001"}]}
+    requestSurvey = {usedId: @user.id,
+                     surveyId: params[:surveyId],
+                     modelId: params[:modelId],
+                     version: params[:version],
+                     data: params[:data]
+                    }
     ch.default_exchange.publish( requestSurvey.to_json, :routing_key => q.name )
     puts " [x] Sent #{requestSurvey.to_json}"
     conn.close
@@ -44,8 +42,21 @@ class ReportsController < ApplicationController
   end
 
   def result
-    @result = params[:result]
-    @success = {success:"결과 응답을 받았습니다."}
+    # 들어온 설문지 결과값 저장하기
+    user = User.find(params[:userId])
+    user.reports.find_by(survey_id:params[:surveyId]).result = params[:predictResult]
+
+    params[:data].each do |data|
+      ssumji = Ssumji.new
+      ssumji.questionCode = data[:questionCode]
+      ssumji.answerCode = data[:answerCode]
+      report.data << ssumji
+    end
+
+    user.reports << report
+    user.save
+
+    @success = {success:"결과 응답을 받았습니다.", userEmail:"#{user.email}", surveyId:"#{params[:surveyId]}", predictResult:"#{params[:predictResult]}"}
     render json: @success, status: :ok
   end
 

@@ -4,6 +4,6 @@ Rails.application.routes.draw do
   post 'check' => 'users#show'
   post 'fcm' => 'users#fcm_push'
 
-  post 'predictReports' => 'surveys#input_survey'
-  post 'predictResults' => 'surveys#result'
+  post 'predictReports' => 'reports#input_survey'
+  post 'predictResults' => 'reports#result'
 end

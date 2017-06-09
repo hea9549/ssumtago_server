@@ -1,7 +1,6 @@
 class Ssumji
   include Mongoid::Document
-  # Mongoid.embedded_object_id = false
-  # object_id false
+  field :_id, type: String, default: -> {nil}
   field :questionCode, as: :question_code, type: String
   field :answerCode, as: :answer_code, type: String
   embedded_in :report
