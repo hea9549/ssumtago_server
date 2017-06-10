@@ -11,55 +11,78 @@ class ReportsController < ApplicationController
   def input_survey
 
     # 들어온 설문지 결과값 저장하기
-    user = User.find(@user.id)
-    report = Report.new
-    report.survey_id = params[:surveyId]
-    report.model_id = params[:modelId]
-    report.version = params[:version]
-    report.requestTime = DateTime.now
-    report.is_processed = false
-    params[:data].each do |data|
-      ssumji = Ssumji.new
-      ssumji.questionCode = data[:questionCode]
-      ssumji.answerCode = data[:answerCode]
-      report.data << ssumji
+    begin user = User.find(@user.id)
+      report = Report.new
+      report.survey_id = params[:surveyId]
+      report.model_id = params[:modelId]
+      report.version = params[:version]
+      report.requestTime = DateTime.now
+      report.is_processed = false
+      params[:data].each do |data|
+        ssumji = Ssumji.new
+        ssumji.questionCode = data[:questionCode]
+        ssumji.answerCode = data[:answerCode]
+        report.data << ssumji
+      end
+
+      user.predictReports << report
+      user.last_surveyed = DateTime.now
+      user.save
+
+      # RabbitMQ로 Q보내기
+      conn = Bunny.new(:host => "expirit.co.kr", :vhost => "pushHost", :user => "ssumtago", password: @@rabbitMQ_secret)
+      conn.start
+      ch   = conn.create_channel
+      q    = ch.queue("ssumPredict")
+      requestSurvey = {userId: @user.id.to_s,
+                       requestTime: report.requestTime,
+                       surveyId: report.survey_id,
+                       modelId: report.model_id,
+                       version: report.version,
+                       data: params[:data]
+                      }
+      ch.default_exchange.publish( requestSurvey.to_json, :routing_key => q.name )
+      puts " [x] Sent #{requestSurvey.to_json}"
+      conn.close
+      @success = {success:"큐 전송에 성공했습니다."}
+      render json: @success, status: :ok
+    # user가 없다면 에러
+    rescue Mongoid::Errors::DocumentNotFound
+      @error = {msg: "올바른 userId 값을 넣어주세요.", code:"400", time:Time.now}
+      render json: @error, status: :bad_request
+    rescue Mongoid::Errors::InvalidFind
+      @error = {msg: "body에 userId 값을 넣어주세요.", code:"400", time:Time.now}
+      render json: @error, status: :bad_request
     end
-
-    user.predictReports << report
-    user.last_surveyed = DateTime.now
-    user.save
-
-    # RabbitMQ로 Q보내기
-    conn = Bunny.new(:host => "expirit.co.kr", :vhost => "pushHost", :user => "ssumtago", password: @@rabbitMQ_secret)
-    conn.start
-    ch   = conn.create_channel
-    q    = ch.queue("ssumPredict")
-    requestSurvey = {userId: @user.id.to_s,
-                     requestTime: report.requestTime,
-                     surveyId: report.survey_id,
-                     modelId: report.model_id,
-                     version: report.version,
-                     data: params[:data]
-                    }
-    ch.default_exchange.publish( requestSurvey.to_json, :routing_key => q.name )
-    puts " [x] Sent #{requestSurvey.to_json}"
-    conn.close
-    @success = {success:"큐 전송에 성공했습니다."}
-    render json: @success, status: :ok
   end
 
   # [POST] /predictResults => ML서버로 부터 예측 결과값을 받는 메서드 (check_jwt 메서드 X)
   def result
     # 들어온 설문지 결과값 저장하기
-    user = User.find(params[:userId])
-    report = user.predictReports.find_by(survey_id:params[:surveyId])
-    report.result = params[:predictResult]
-    report.is_processed = true
-    report.response_time = DateTime.now
-    report.save
+    # userId에 해당하는 user가 있는지 확인
+    begin user = User.find(params[:userId])
+      # surveyId에 해당하는 predictReports가 있는지 확인
+      begin report = user.predictReports.find_by(survey_id:params[:surveyId])
+        report.result = params[:predictResult]
+        report.is_processed = true
+        report.response_time = DateTime.now
+        report.save
 
-    @success = {success:"예측 결과 응답을 받았습니다.", userEmail:"#{user.email}", surveyId:"#{params[:surveyId]}", predictResult:"#{params[:predictResult]}"}
-    render json: @success, status: :ok
+        @success = {success:"예측 결과 응답을 받았습니다.", userEmail:"#{user.email}", surveyId:"#{params[:surveyId]}", predictResult:"#{params[:predictResult]}"}
+        render json: @success, status: :ok
+      # predictReports가 없다면 에러
+      rescue Mongoid::Errors::DocumentNotFound
+        @error = {msg: "올바른 surveyId 값을 넣어주세요.", code:"400", time:Time.now}
+        render json: @error, status: :bad_request
+      end
+    # user가 없다면 에러
+    rescue Mongoid::Errors::DocumentNotFound
+      @error = {msg: "올바른 userId 값을 넣어주세요.", code:"400", time:Time.now}
+      render json: @error, status: :bad_request
+    rescue Mongoid::Errors::InvalidFind
+      @error = {msg: "body에 userId 값을 넣어주세요.", code:"400", time:Time.now}
+      render json: @error, status: :bad_request
+    end
   end
 
 
