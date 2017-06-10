@@ -56,8 +56,7 @@ class ReportsController < ApplicationController
     report.result = params[:predictResult]
     report.is_processed = true
     report.response_time = DateTime.now
-    user.predictReports << report
-    user.save
+    report.save
 
     @success = {success:"예측 결과 응답을 받았습니다.", userEmail:"#{user.email}", surveyId:"#{params[:surveyId]}", predictResult:"#{params[:predictResult]}"}
     render json: @success, status: :ok
