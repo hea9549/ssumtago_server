@@ -36,6 +36,7 @@ class ReportsController < ApplicationController
       q    = ch.queue("ssumPredict")
       requestSurvey = {userId: @user.id.to_s,
                        requestTime: report.requestTime,
+                       reportId: report.id.to_s,
                        surveyId: report.survey_id,
                        modelId: report.model_id,
                        version: report.version,
@@ -61,8 +62,8 @@ class ReportsController < ApplicationController
     # 들어온 설문지 결과값 저장하기
     # userId에 해당하는 user가 있는지 확인
     begin user = User.find(params[:userId])
-      # surveyId에 해당하는 predictReports가 있는지 확인
-      begin report = user.predictReports.find_by(survey_id:params[:surveyId])
+      # reportId에 해당하는 predictReports가 있는지 확인
+      begin report = user.predictReports.find(params[:reportId])
         report.result = params[:predictResult]
         report.is_processed = true
         report.response_time = DateTime.now
@@ -72,7 +73,7 @@ class ReportsController < ApplicationController
         render json: @success, status: :ok
       # predictReports가 없다면 에러
       rescue Mongoid::Errors::DocumentNotFound
-        @error = {msg: "올바른 surveyId 값을 넣어주세요.", code:"400", time:Time.now}
+        @error = {msg: "올바른 reportId 값을 넣어주세요.", code:"400", time:Time.now}
         render json: @error, status: :bad_request
       end
     # user가 없다면 에러

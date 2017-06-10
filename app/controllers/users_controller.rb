@@ -16,15 +16,17 @@ class UsersController < ApplicationController
         @user = User.where(joinType: "facebook").find_or_initialize_by(email:@fb_email)
         # 페이스북으로 이미 가입한 회원일때
         if @user.persisted?
-          if @user.authenticate(Digest::SHA1.hexdigest(params[:password]))? true: false
+          # 페이스북은 매번 토큰 값이 달라지기 때문에
+          # 따로 authenticate을 할 필요없이 토큰 자체가 valid 하면 바로 로그인
+          # if @user.authenticate(Digest::SHA1.hexdigest(params[:password]))? true: false
             @info = {email: @user["email"], role:["user"], creator: "API server", expireTime: Time.now + 24.hours}
             @token = JWT.encode @info, @@hmac_secret, 'HS256'
             @success = {success:"로그인에 성공했습니다.", jwt: @token}
             render json: @success, status: :ok
-          else
-            @error = {msg: "비밀번호가 올바르지 않습니다.", code:"400", time:Time.now}
-            render json: @error, status: :bad_request
-          end
+          # else
+          #   @error = {msg: "비밀번호가 올바르지 않습니다.", code:"400", time:Time.now}
+          #   render json: @error, status: :bad_request
+          # end
         # 페이스북 신규 회원일때
         else
           @user.password = Digest::SHA1.hexdigest(params[:password])
@@ -149,7 +151,7 @@ class UsersController < ApplicationController
   private
     # User 컨트롤러 공용메서드를 적는 부분
 
-    # 명시된 kay값으로 날라오는 parameter들만 받는 메서드 (white list)
+    # 명시된 key값으로 날라오는 parameter들만 받는 메서드 (white list)
     def user_params
       params.permit(:email, :password, :joinType, :name, :sex, :age, :fcmToken, :createdTime, :updatedTime, :lastSurveyed, :ssums)
     end

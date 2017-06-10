@@ -1,8 +1,6 @@
 # User의 predictReports를 담당하는 Report 모델 클래스
 class Report
   include Mongoid::Document
-  # objectId 값 nil
-  field :_id, type: String, default: -> {nil}
   field :surveyId, as: :survey_id, type: Integer
   field :modelId, as: :model_id, type: Integer
   field :version, type: String
