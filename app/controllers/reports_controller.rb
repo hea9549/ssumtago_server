@@ -1,3 +1,5 @@
+# 설문지와 관련된 요청을 처리하는 컨트롤러
+
 require "bunny"
 require 'json'
 
@@ -5,6 +7,7 @@ class ReportsController < ApplicationController
   before_action :check_jwt, only: [:input_survey]
   @@rabbitMQ_secret = ENV['RabbitMQ_pwd']
 
+  # [POST] /predictReports => 클라이언트로 부터 설문지 값을 받는 메서드 (check_jwt 메서드가 선행됨)
   def input_survey
 
     # 들어온 설문지 결과값 저장하기
@@ -45,6 +48,7 @@ class ReportsController < ApplicationController
     render json: @success, status: :ok
   end
 
+  # [POST] /predictResults => ML서버로 부터 예측 결과값을 받는 메서드 (check_jwt 메서드 X)
   def result
     # 들어온 설문지 결과값 저장하기
     user = User.find(params[:userId])
@@ -57,6 +61,30 @@ class ReportsController < ApplicationController
 
     @success = {success:"예측 결과 응답을 받았습니다.", userEmail:"#{user.email}", surveyId:"#{params[:surveyId]}", predictResult:"#{params[:predictResult]}"}
     render json: @success, status: :ok
+  end
+
+
+  # [POST] /fcm => 예측 결과값을 fcm으로 보내는 메서드
+  # result 메서드 뒷부분에 합칠 예정
+  def fcm_push
+    @headers = {
+      "Content-Type" => "application/json",
+      "Authorization" => "key=AAAAqms91F8:APA91bGjBdzhydJBsXyJt-1KVPVwiODVugMMlmyqcH1PrNo35HZ0XUsQujcht7_DywzWrEkIFXirXkIbtiUS8pioQwtrNxXRaX_LmcmI3IVPOhpX655J-pfR5c8CH6D68ncbteOoDwn8"
+    }
+    @body = {
+      "data" => {
+        "score" => "5x1",
+        "time" => "15:10"
+      },
+      "to" => "bk3RNwTe3H0:CI2k_HHwgIpoDKCIZvvDMExUdFQ3P1..."
+    }
+    @result = HTTParty.post(
+      "https://fcm.googleapis.com/fcm/send",
+      headers: @headers,
+      body: @body.to_json
+    )
+
+    return @result
   end
 
 end

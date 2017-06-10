@@ -1,5 +1,7 @@
+# User의 predictReports를 담당하는 Report 모델 클래스
 class Report
   include Mongoid::Document
+  # objectId 값 nil
   field :_id, type: String, default: -> {nil}
   field :surveyId, as: :survey_id, type: Integer
   field :modelId, as: :model_id, type: Integer
@@ -8,6 +10,8 @@ class Report
   field :responseTime, as: :response_time, type: DateTime
   field :isProcessed, as: :is_processed, type: Boolean
   field :result, type: Array
+  # User 모델에 embeded됨
   embedded_in :user
+  # Ssumji 모델을 embed함
   embeds_many :data, class_name:"Ssumji"
 end
