@@ -91,10 +91,51 @@ class ReportsController < ApplicationController
         report.result = params[:predictResult]
         report.is_processed = true
         report.response_time = DateTime.now
-        report.save
+        if report.save
+        # report 결과 저장 성공시
+          # fcm 시작
+          @headers = {
+            "Content-Type" => "application/json",
+            "Authorization" => "key=AAAAXq8WLYs:APA91bEuNpbkWAL5mu2XCIdNsV8DoLOd9BNBgbB9WgBFjT1GdgcUhcdEijpsc5soDGj2T9M9YQXO_NAVk2YGFVBpZNBzdViTCwfWf0uV2hHfn7P5Q-PbXxsn1LipS-ZZBCexdJiwcTbe "
+          }
+          @body = {
+            "data" => {
+              # 03yyyy, 푸쉬의 종류
+              # 030001은 썸지 결과 푸쉬
+              "pushType" => "030001",
+              "data" => {
+                "_id" => report.id.to_s,
+                "surveyId" => report.survey_id,
+                "modelId" => report.model_id,
+                "version" => report.version,
+                "requestTime" => report.request_time,
+                "responseTime" => report.response_time,
+                "isProcessed" => report.is_processed,
+                "data" => report.data.map{|x|x.attributes},
+                "result" => report.result
+              }
+            },
+            "to" => "f3iDP3aghcc:APA91bE_n3b2IepFR5ZKk1th6VHNycG9uvqafbhVCWU88fPKj4U_Na-7hfymKGAYsKwG-Q9EzvHUYiT2HMRqZIGvXMGKyQnhQ_GBbAljO5q8hS9dkXBs6tSmZgnL6mmV5EBDvEqTNp5b"
+          }
+          puts @body.to_json
+          @result = HTTParty.post(
+            "https://fcm.googleapis.com/fcm/send",
+            headers: @headers,
+            body: @body.to_json
+          )
+          case @result.code.to_i
+            when 200
+              @success = {success:"예측 결과 응답 저장 후 성공적으로 fcm으로 보냈습니다."}
+              render json: @msg, status: :ok
+            when 401...600
+              @error = {msg:"예측 결과 응답 저장은 성공했지만, 서버 에러로 fcm전송에 실패했습니다.", code:"500", time:Time.now}
+              render json: @error, status: :internal_server_error
+          end
+        else
+          @error = {msg:"서버 에러로 report 결과 저장에 실패했습니다.", code:"500", time:Time.now}
+          render json: @error, status: :internal_server_error
+        end
 
-        @success = {success:"예측 결과 응답을 받았습니다.", userEmail:"#{user.email}", predictResult:"#{params[:predictResult]}"}
-        render json: @success, status: :ok
       # predictReports가 없다면 에러
       rescue Mongoid::Errors::DocumentNotFound
         logger.error "[LINE:#{__LINE__}] reportId에 해당하는 report가 없음 / 통신종료"
@@ -123,22 +164,41 @@ class ReportsController < ApplicationController
   def fcm_push
     @headers = {
       "Content-Type" => "application/json",
-      "Authorization" => "key=AAAAqms91F8:APA91bGjBdzhydJBsXyJt-1KVPVwiODVugMMlmyqcH1PrNo35HZ0XUsQujcht7_DywzWrEkIFXirXkIbtiUS8pioQwtrNxXRaX_LmcmI3IVPOhpX655J-pfR5c8CH6D68ncbteOoDwn8"
+      "Authorization" => "key=AAAAXq8WLYs:APA91bEuNpbkWAL5mu2XCIdNsV8DoLOd9BNBgbB9WgBFjT1GdgcUhcdEijpsc5soDGj2T9M9YQXO_NAVk2YGFVBpZNBzdViTCwfWf0uV2hHfn7P5Q-PbXxsn1LipS-ZZBCexdJiwcTbe "
     }
     @body = {
       "data" => {
-        "score" => "5x1",
-        "time" => "15:10"
+        "pushType" => "030001",
+        "data" => {
+          "_id" => "1",
+          "surveyId" => "1",
+          "modelId" => "1",
+          "version" => "1",
+          "requestTime" => "1",
+          "responseTime" => "1",
+          "isProcessed" => "!",
+          "data" => ["questionCode"=>"01000120001", "answerCode" => "02001001"],
+          "result" => ["1"]
+        }
       },
-      "to" => "bk3RNwTe3H0:CI2k_HHwgIpoDKCIZvvDMExUdFQ3P1..."
+      "to" => "f3iDP3aghcc:APA91bE_n3b2IepFR5ZKk1th6VHNycG9uvqafbhVCWU88fPKj4U_Na-7hfymKGAYsKwG-Q9EzvHUYiT2HMRqZIGvXMGKyQnhQ_GBbAljO5q8hS9dkXBs6tSmZgnL6mmV5EBDvEqTNp5b"
     }
+    puts @body.to_json
     @result = HTTParty.post(
       "https://fcm.googleapis.com/fcm/send",
       headers: @headers,
       body: @body.to_json
     )
 
-    return @result
+    puts @result.response.message
+    case @result.code
+      when 200
+        @success = {success:"예측 결과 응답 저장 후 성공적으로 fcm으로 보냈습니다."}
+        render json: @msg, status: :ok
+      when 401...600
+        @error = {msg:"예측 결과 응답 저장은 성공했지만, 서버 에러로 fcm전송에 실패했습니다.", code:"500", time:Time.now}
+        render json: @error, status: :internal_server_error
+    end
   end
 
 end
