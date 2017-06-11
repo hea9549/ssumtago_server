@@ -1,24 +1,25 @@
+# 모든 컨트롤러 공용 메서드를 담는 컨트롤러
+
 class ApplicationController < ActionController::API
   @@hmac_secret = ENV['HAMC_SECRET']
 
   private
+    # JWT 값을 확인하는 메서드
+    # 확인될시 User 객체 반환
     def check_jwt
       if request.headers["jwt"]
         @jwt = request.headers["jwt"]
         begin @decoded_token = JWT.decode @jwt, @@hmac_secret, true, { :algorithm => 'HS256' }
+         # JWT를 decode 하면 배열이 나온는데 첫 번째 값에 유저 정보가 들어있음
          @info = @decoded_token[0]
+          # 만료시간 체크
           if Time.now <= Time.parse(@info["expireTime"])
             @user = User.find_by(email: @info["email"])
-            # @info = {
-            #   email: @user["email"],
-            #   name: @user["name"],
-            #   sex: @user["sex"],
-            #   ssums: @user["ssums"]
-            # }
           else
             @error = {msg: "Token이 만기됐습니다!", code:"401", time: Time.now}
             render json: @error, status: :unauthorized
           end
+        # JWT decode 실패시
         rescue JWT::IncorrectAlgorithm
           @error = {msg: "올바른 Token 값을 넣어주세요!", code:"401", time:Time.now}
           render json: @error, status: :unauthorized
@@ -29,6 +30,7 @@ class ApplicationController < ActionController::API
           @error = {msg: "올바른 Token 값을 넣어주세요!", code:"401", time:Time.now}
           render json: @error, status: :unauthorized
         end
+      # request Header에 jwt가 없을시
       else
         @error = {msg: "Header에 Token 값을 넣어주세요!", code:"400", time:Time.now}
         render json: @error, status: :bad_request

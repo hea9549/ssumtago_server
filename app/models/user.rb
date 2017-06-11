@@ -1,7 +1,12 @@
+# Users collection을 담당하는 User 모델 클래스
 class User
   include Mongoid::Document
+  # created_at / updated_at column 추가
   include Mongoid::Timestamps
+  # bcrypt 적용
   include ActiveModel::SecurePassword
+  # password 암호화 및 presence validation 적용
+  has_secure_password
   field :email, type: String
   field :password_digest, type: String
   field :name, type: String
@@ -9,10 +14,13 @@ class User
   field :age, type: String
   field :joinType, as: :join_type, type: String
   field :fcmToken, as: :fcm_token, type: String
-  field :lastSurveyed, as: :last_surveyed, type: Date
-  # field :ssums, type: Array, default: []
-  # embeds_many :ssums, class_name:"Report"
-  has_secure_password
+  field :lastSurveyed, as: :last_surveyed, type: DateTime
+  # Report 모델을 embed함
+  embeds_many :predictReports, class_name:"Report"
+  # email, name, joinType이 존재해야함
+  validates_presence_of :email
+  validates_presence_of :name
+  validates_presence_of :joinType
 
   # attr_accessor :email, :name, :sex, :age, :joinType, :fcmToken, :lastSurveyed, :ssums
 

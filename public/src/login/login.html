@@ -1,0 +1,20 @@
+<div ng-if="!users.isLogin">
+  <h3>로그인하기</h3>
+  <form>
+    <label for="email">이메일</label>
+    <input type="email" name="email" ng-model="users.email"/><br />
+    <label for="password">비밀번호</label>
+    <input type="password" name="password" ng-model="users.password" /><br />
+    <button ng-click="users.emailLogin()">로그인</button>
+  </form>
+  <button ng-click="users.fbLogin()">페이스북으로 로그인</button>
+</div>
+
+<div ng-if="users.isLogin">
+  <h3>로그인 정보</h3>
+  <ul>
+    <li>이메일: {{users.email}}</li>
+    <li>이름: {{users.name}}</li>
+  </ul>
+  <button ng-click="users.logout()">로그아웃</button>
+</div>

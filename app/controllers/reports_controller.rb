@@ -1,3 +1,5 @@
+# 설문지와 관련된 요청을 처리하는 컨트롤러
+
 require "bunny"
 require 'json'
 
@@ -5,48 +7,113 @@ class ReportsController < ApplicationController
   before_action :check_jwt, only: [:input_survey]
   @@rabbitMQ_secret = ENV['RabbitMQ_pwd']
 
+  # [POST] /predictReports => 클라이언트로 부터 설문지 값을 받는 메서드 (check_jwt 메서드가 선행됨)
   def input_survey
-    conn = Bunny.new(:host => "expirit.co.kr", :vhost => "pushHost", :user => "ssumtago", password: @@rabbitMQ_secret)
-    conn.start
-    ch   = conn.create_channel
-    q    = ch.queue("ssumPredict")
-    requestSurvey = {usedId: @user.id, surveyId: 1, modelId: 1, version: "1.0.1", data: [{questionCode: "01000120001", answerCode: "02001001"},
-                                                                             {questionCode: "01000120002", answerCode: "02002003"},
-                                                                             {questionCode: "01000120003", answerCode: "02003004"},
-                                                                             {questionCode: "01000120004", answerCode: "02004004"},
-                                                                             {questionCode: "01000120005", answerCode: "02005001"},
-                                                                             {questionCode: "01000112006", answerCode: "02006036"},
-                                                                             {questionCode: "01200120007", answerCode: "02007003"},
-                                                                             {questionCode: "01200120008", answerCode: "02008001"},
-                                                                             {questionCode: "01000120009", answerCode: "02009005"},
-                                                                             {questionCode: "01100120010", answerCode: "02010004"},
-                                                                             {questionCode: "01200120011", answerCode: "02011003"},
-                                                                             {questionCode: "01200000012", answerCode: "02012002"},
-                                                                             {questionCode: "01100120013", answerCode: "02013003"},
-                                                                             {questionCode: "01200120014", answerCode: "02014003"},
-                                                                             {questionCode: "01000120015", answerCode: "02015002"},
-                                                                             {questionCode: "01100120016", answerCode: "02016002"},
-                                                                             {questionCode: "01200120017", answerCode: "02017001"},
-                                                                             {questionCode: "01200111018", answerCode: "02018063"},
-                                                                             {questionCode: "01000120019", answerCode: "02019003"},
-                                                                             {questionCode: "01000120020", answerCode: "02020001"},
-                                                                             {questionCode: "01000120021", answerCode: "02021002"},
-                                                                             {questionCode: "01000120022", answerCode: "02022004"},
-                                                                             {questionCode: "01000120023", answerCode: "02023004"},
-                                                                             {questionCode: "01000120024", answerCode: "02024003"},
-                                                                             {questionCode: "01010000025", answerCode: "02025021"},
-                                                                             {questionCode: "01000120026", answerCode: "02026001"}]}
-    ch.default_exchange.publish( requestSurvey.to_json, :routing_key => q.name )
-    puts " [x] Sent #{requestSurvey.to_json}"
-    conn.close
-    @success = {success:"큐 전송에 성공했습니다."}
-    render json: @success, status: :ok
+
+    # 들어온 설문지 결과값 저장하기
+    begin user = User.find(@user.id)
+      report = Report.new
+      report.survey_id = params[:surveyId]
+      report.model_id = params[:modelId]
+      report.version = params[:version]
+      report.requestTime = DateTime.now
+      report.is_processed = false
+      params[:data].each do |data|
+        ssumji = Ssumji.new
+        ssumji.questionCode = data[:questionCode]
+        ssumji.answerCode = data[:answerCode]
+        report.data << ssumji
+      end
+
+      user.predictReports << report
+      user.last_surveyed = DateTime.now
+      user.save
+
+      # RabbitMQ로 Q보내기
+      conn = Bunny.new(:host => "expirit.co.kr", :vhost => "pushHost", :user => "ssumtago", password: @@rabbitMQ_secret)
+      conn.start
+      ch   = conn.create_channel
+      q    = ch.queue("ssumPredict")
+      requestSurvey = {userId: @user.id.to_s,
+                       requestTime: report.requestTime,
+                       reportId: report.id.to_s,
+                       surveyId: report.survey_id,
+                       modelId: report.model_id,
+                       version: report.version,
+                       data: params[:data]
+                      }
+      ch.default_exchange.publish( requestSurvey.to_json, :routing_key => q.name )
+      puts " [x] Sent #{requestSurvey.to_json}"
+      conn.close
+      @success = {success:"큐 전송에 성공했습니다."}
+      render json: @success, status: :ok
+    # user가 없다면 에러
+    rescue Mongoid::Errors::DocumentNotFound
+      @error = {msg: "올바른 userId 값을 넣어주세요.", code:"400", time:Time.now}
+      render json: @error, status: :bad_request
+    rescue Mongoid::Errors::InvalidFind
+      @error = {msg: "body에 userId 값을 넣어주세요.", code:"400", time:Time.now}
+      render json: @error, status: :bad_request
+    end
   end
 
+  # [POST] /predictResults => ML서버로 부터 예측 결과값을 받는 메서드 (check_jwt 메서드 X)
   def result
-    @result = params[:result]
-    @success = {success:"결과 응답을 받았습니다."}
-    render json: @success, status: :ok
+    # 들어온 설문지 결과값 저장하기
+    # userId에 해당하는 user가 있는지 확인
+    puts params[:userId]
+    puts params.inspect
+    # begin user = User.find(BSON::ObjectId(params[:userId]))
+    begin user = User.find(params[:userId])
+      # reportId에 해당하는 predictReports가 있는지 확인
+      begin report = user.predictReports.find(params[:reportId])
+        report.result = params[:predictResult]
+        report.is_processed = true
+        report.response_time = DateTime.now
+        report.save
+
+        @success = {success:"예측 결과 응답을 받았습니다.", userEmail:"#{user.email}", predictResult:"#{params[:predictResult]}"}
+        render json: @success, status: :ok
+      # predictReports가 없다면 에러
+      rescue Mongoid::Errors::DocumentNotFound
+        @error = {msg: "올바른 reportId 값을 넣어주세요.", code:"400", time:Time.now}
+        render json: @error, status: :bad_request
+      rescue Mongoid::Errors::InvalidFind
+        @error = {msg: "body에 reportId 값을 넣어주세요.", code:"400", time:Time.now}
+        render json: @error, status: :bad_request
+      end
+    # user가 없다면 에러
+    rescue Mongoid::Errors::DocumentNotFound
+      @error = {msg: "올바른 userId 값을 넣어주세요.", code:"400", time:Time.now}
+      render json: @error, status: :bad_request
+    rescue Mongoid::Errors::InvalidFind
+      @error = {msg: "body에 userId 값을 넣어주세요.", code:"400", time:Time.now}
+      render json: @error, status: :bad_request
+    end
+  end
+
+
+  # [POST] /fcm => 예측 결과값을 fcm으로 보내는 메서드
+  # result 메서드 뒷부분에 합칠 예정
+  def fcm_push
+    @headers = {
+      "Content-Type" => "application/json",
+      "Authorization" => "key=AAAAqms91F8:APA91bGjBdzhydJBsXyJt-1KVPVwiODVugMMlmyqcH1PrNo35HZ0XUsQujcht7_DywzWrEkIFXirXkIbtiUS8pioQwtrNxXRaX_LmcmI3IVPOhpX655J-pfR5c8CH6D68ncbteOoDwn8"
+    }
+    @body = {
+      "data" => {
+        "score" => "5x1",
+        "time" => "15:10"
+      },
+      "to" => "bk3RNwTe3H0:CI2k_HHwgIpoDKCIZvvDMExUdFQ3P1..."
+    }
+    @result = HTTParty.post(
+      "https://fcm.googleapis.com/fcm/send",
+      headers: @headers,
+      body: @body.to_json
+    )
+
+    return @result
   end
 
 end
