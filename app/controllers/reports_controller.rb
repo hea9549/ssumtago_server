@@ -92,7 +92,8 @@ class ReportsController < ApplicationController
         report.is_processed = true
         report.response_time = DateTime.now
         if report.save
-        # report 결과 저장 성공시
+          logger.info "[LINE:#{__LINE__}] report에 결과 값 저장 성공, fcm 전송 시작..."
+          # report 결과 저장 성공시
           # fcm 시작
           @headers = {
             "Content-Type" => "application/json",
@@ -117,7 +118,7 @@ class ReportsController < ApplicationController
             },
             "to" => "f3iDP3aghcc:APA91bE_n3b2IepFR5ZKk1th6VHNycG9uvqafbhVCWU88fPKj4U_Na-7hfymKGAYsKwG-Q9EzvHUYiT2HMRqZIGvXMGKyQnhQ_GBbAljO5q8hS9dkXBs6tSmZgnL6mmV5EBDvEqTNp5b"
           }
-          puts @body.to_json
+          # puts @body.to_json
           @result = HTTParty.post(
             "https://fcm.googleapis.com/fcm/send",
             headers: @headers,
@@ -125,13 +126,16 @@ class ReportsController < ApplicationController
           )
           case @result.code.to_i
             when 200
+              logger.info "[LINE:#{__LINE__}] fcm 전송 성공 / 통신종료 "
               @success = {success:"예측 결과 응답 저장 후 성공적으로 fcm으로 보냈습니다."}
               render json: @msg, status: :ok
             when 401...600
+              logger.error "[LINE:#{__LINE__}] 통신 에러로 fcm 전송 실패 / 통신종료 "
               @error = {msg:"예측 결과 응답 저장은 성공했지만, 서버 에러로 fcm전송에 실패했습니다.", code:"500", time:Time.now}
               render json: @error, status: :internal_server_error
           end
         else
+          logger.error "[LINE:#{__LINE__}] report에 결과 값 저장 실패 / 통신종료 "
           @error = {msg:"서버 에러로 report 결과 저장에 실패했습니다.", code:"500", time:Time.now}
           render json: @error, status: :internal_server_error
         end

@@ -6,7 +6,7 @@ logger.formatter = Logger::Formatter.new
 
 
 class UsersController < ApplicationController
-  before_action :check_jwt, only:[:show]
+  before_action :check_jwt, only:[:show, :fcm_update]
   @@hmac_secret = ENV['HAMC_SECRET']
 
   # [POST] /sessions => 로그인 요청을 처리하는 메서드
@@ -167,10 +167,33 @@ class UsersController < ApplicationController
     end
   end
 
-  # [POST] /check => jwt 값을 확인하는 메서드
+  # [GET] /users => 유저 조회하는 메서드
   def show
     logger.info "[LINE:#{__LINE__}] jwt에 해당하는 user 값 리턴완료 / 통신종료"
     render json: @user, status: :ok
+  end
+
+  # [PATCH] /users => 유저 fcm 업데이트하는 메서드
+  def fcm_update
+    logger.info "[LINE:#{__LINE__}] jwt 값 확인, 파라미터에 fcmToken 여부 확인 중..."
+    # 파라미터 fcmToken 값 여부 확인
+    if params[:fcmToken]
+      logger.info "[LINE:#{__LINE__}] fcmToken 확인, 해당 user의 fcmToken 수정 중..."
+      @user.fcmToken = params[:fcmToken]
+      if @user.save
+        logger.info "[LINE:#{__LINE__}] user의 fcmToken 업데이트 완료 / 통신 종료"
+        @success = {success:"#{@user.name}님의 fcmToken 업데이트를 완료했습니다."}
+        render json: @success, status: :ok
+      else
+        logger.error "[LINE:#{__LINE__}] 서버 에러로 업데이트 실패 / 통신 종료"
+        @error = {msg:"서버 에러로 저장이 실패했습니다.", code:"500", time:Time.now}
+        render json: @error, status: :internal_server_error
+      end
+    else
+      logger.error "[LINE:#{__LINE__}] 파라미터에 fcmToken 없음 / 통신 종료"
+      @error = {msg: "Body에 fcmToken 값을 넣어주세요!", code:"400", time:Time.now}
+      render json: @error, status: :bad_request
+    end
   end
 
   private
