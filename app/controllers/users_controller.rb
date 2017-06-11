@@ -12,8 +12,8 @@ class UsersController < ApplicationController
     if params[:joinType] == "facebook"
       @fb_user = CheckFbToken.new(params[:password])
       # 페이스북 토큰이 맞는지 인증
-      begin @fb_email = @fb_user.verify[:email]
-        @user = User.where(joinType: "facebook").find_or_initialize_by(email:@fb_email)
+      begin @fb_info = @fb_user.verify
+        @user = User.where(joinType: "facebook").find_or_initialize_by(email:@fb_info[:email])
         # 페이스북으로 이미 가입한 회원일때
         if @user.persisted?
           # 페이스북은 매번 토큰 값이 달라지기 때문에
@@ -31,7 +31,7 @@ class UsersController < ApplicationController
         else
           @user.password = Digest::SHA1.hexdigest(params[:password])
           @user.joinType = params[:joinType]
-          @user.name = params[:name]
+          @user.name = @fb_info[:name]
           @user.sex = params[:sex]
           @user.age = params[:age]
           if @user.save

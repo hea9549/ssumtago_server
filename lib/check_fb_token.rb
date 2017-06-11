@@ -9,8 +9,8 @@ class CheckFbToken
   # 실제로 토큰값을 검증하는 메서드
   def verify
     graph = Koala::Facebook::API.new(@oauth_access_token)
-    info = graph.get_object('me', fields:'email, verified')
-    info_hash = {email: info["email"], valid: info["verified"]}
+    info = graph.get_object('me', fields:'email, verified, name')
+    info_hash = {email: info["email"], valid: info["verified"], name: info["name"]}
     # email / valid 값이 담긴 해쉬를 return
     return info_hash
   end
