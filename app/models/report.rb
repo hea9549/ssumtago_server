@@ -12,4 +12,8 @@ class Report
   embedded_in :user
   # Ssumji 모델을 embed함
   embeds_many :data, class_name:"Ssumji"
+  # surveyId, modelId, version 존재해야함
+  # validates_presence_of :surveyId
+  # validates_presence_of :modelId
+  # validates_presence_of :version
 end
