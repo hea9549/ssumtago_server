@@ -61,6 +61,7 @@ class ReportsController < ApplicationController
   def result
     # 들어온 설문지 결과값 저장하기
     # userId에 해당하는 user가 있는지 확인
+    puts params
     begin user = User.find(params[:userId])
       # reportId에 해당하는 predictReports가 있는지 확인
       begin report = user.predictReports.find(params[:reportId])

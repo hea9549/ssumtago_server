@@ -145,7 +145,7 @@ class UsersController < ApplicationController
 
   # [POST] /check => jwt 값을 확인하는 메서드
   def show
-    render json: @decoded_token, status: :ok
+    render json: @user, status: :ok
   end
 
   private

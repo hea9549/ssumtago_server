@@ -5,12 +5,14 @@
     <title>User Angular</title>
   </head>
   <body>
-
-    <div ng-controller="SsumtagoController as users">
+    <h1>썸타고</h1>
+    <div ng-controller="UsersController as users">
+      <ui-view></ui-view>
     </div>
     <script src="lib/angular.min.js"></script>
     <script src="lib/angular-ui-router.min.js"></script>
     <script src="src/app.js"></script>
-
+    <script src="src/fbLogin.js"></script>
+    <script src="src/router.js"></script>
   </body>
 </html>
