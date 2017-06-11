@@ -63,7 +63,7 @@ class ReportsController < ApplicationController
     # userId에 해당하는 user가 있는지 확인
     puts params[:userId]
     puts params.inspect
-    begin user = User.find(params[:userId])
+    begin user = User.find(BSON::ObjectId(params[:userId]))
       # reportId에 해당하는 predictReports가 있는지 확인
       begin report = user.predictReports.find(params[:reportId])
         report.result = params[:predictResult]
