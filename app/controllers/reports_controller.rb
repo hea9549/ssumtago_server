@@ -72,11 +72,14 @@ class ReportsController < ApplicationController
         report.response_time = DateTime.now
         report.save
 
-        @success = {success:"예측 결과 응답을 받았습니다.", userEmail:"#{user.email}", surveyId:"#{params[:surveyId]}", predictResult:"#{params[:predictResult]}"}
+        @success = {success:"예측 결과 응답을 받았습니다.", userEmail:"#{user.email}", predictResult:"#{params[:predictResult]}"}
         render json: @success, status: :ok
       # predictReports가 없다면 에러
       rescue Mongoid::Errors::DocumentNotFound
         @error = {msg: "올바른 reportId 값을 넣어주세요.", code:"400", time:Time.now}
+        render json: @error, status: :bad_request
+      rescue Mongoid::Errors::InvalidFind
+        @error = {msg: "body에 reportId 값을 넣어주세요.", code:"400", time:Time.now}
         render json: @error, status: :bad_request
       end
     # user가 없다면 에러
