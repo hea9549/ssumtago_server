@@ -116,9 +116,9 @@ class ReportsController < ApplicationController
                 "result" => report.result
               }
             },
-            "to" => "f3iDP3aghcc:APA91bE_n3b2IepFR5ZKk1th6VHNycG9uvqafbhVCWU88fPKj4U_Na-7hfymKGAYsKwG-Q9EzvHUYiT2HMRqZIGvXMGKyQnhQ_GBbAljO5q8hS9dkXBs6tSmZgnL6mmV5EBDvEqTNp5b"
+            "to" => "e82aYCZuJ7Q:APA91bHORt061lpWdnHpInevhK6GOafzqY521E1oZKReLtj7G-70pczc3rzEt-AOvdjOxygDljprMlaf4I-IY5qiJsI2Hcf0TcoicUe70gY2-qB6bsUX46ox1YXVIXCNynCob9q8Mwdw"
           }
-          # puts @body.to_json
+          puts @body.to_json
           @result = HTTParty.post(
             "https://fcm.googleapis.com/fcm/send",
             headers: @headers,
@@ -128,7 +128,7 @@ class ReportsController < ApplicationController
             when 200
               logger.info "[LINE:#{__LINE__}] fcm 전송 성공 / 통신종료 "
               @success = {success:"예측 결과 응답 저장 후 성공적으로 fcm으로 보냈습니다."}
-              render json: @msg, status: :ok
+              render json: @success, status: :ok
             when 401...600
               logger.error "[LINE:#{__LINE__}] 통신 에러로 fcm 전송 실패 / 통신종료 "
               @error = {msg:"예측 결과 응답 저장은 성공했지만, 서버 에러로 fcm전송에 실패했습니다.", code:"500", time:Time.now}
