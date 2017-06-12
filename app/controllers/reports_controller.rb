@@ -88,7 +88,7 @@ class ReportsController < ApplicationController
       # reportId에 해당하는 predictReports가 있는지 확인
       begin report = user.predictReports.find(params[:reportId])
         logger.info "[LINE:#{__LINE__}] report 찾기 성공, 해당 report에 결과 값 저장 중..."
-        report.result = params[:predictResult]
+        report.result = params[:predictResults]
         report.is_processed = true
         report.response_time = DateTime.now
         if report.save
