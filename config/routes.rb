@@ -6,7 +6,7 @@ Rails.application.routes.draw do
   ## 유저 조회
   get 'users' => 'users#show'
   ## 수정된 fcm 토큰
-  patch 'users' =>'users#fcm_refresh'
+  patch 'users' =>'users#fcm_update'
   ## 로그인
   post 'sessions' => 'users#login'
 
