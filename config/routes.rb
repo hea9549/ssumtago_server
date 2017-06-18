@@ -12,8 +12,12 @@ Rails.application.routes.draw do
 
   # Reports Controller 설문지 관련 Route
   ## 설문지 요청
-  post 'predictReports' => 'reports#input_survey'
+  get 'predictReports/:reportId' => 'reports#read_sruvey'
+  post 'predictReports' => 'reports#create_survey'
+  patch 'predictReports' => 'reports#update_survey'
+  delete 'predictReports' => 'reports#delete_survey'
+
+
   ## 결과값 요청
   post 'predictResults' => 'reports#result'
-  post 'fcm' => 'reports#fcm_push'
 end

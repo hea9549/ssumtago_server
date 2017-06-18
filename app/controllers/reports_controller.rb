@@ -4,15 +4,33 @@ require "bunny"
 require 'json'
 
 class ReportsController < ApplicationController
-  before_action :check_jwt, only: [:input_survey]
+  before_action :check_jwt, only: [:read_sruvey, :create_survey, :update_survey, :delete_survey]
   @@rabbitMQ_secret = ENV['RabbitMQ_pwd']
 
-  # [POST] /predictReports => 클라이언트로 부터 설문지 값을 받는 메서드 (check_jwt 메서드가 선행됨)
-  def input_survey
+  # [GET] /predictReports => 설문지를 불러오는 메서드 (check_jwt 메서드가 선행됨)
+  def read_sruvey
+    logger.info "[LINE:#{__LINE__}] 해당 user 찾음, 불러올 설문지 찾는 중..."
+    begin @report = @user.predictReports.find_by(_id:params[:reportId])
+      logger.info "[LINE:#{__LINE__}] 설문지 확인, 설문지 데이터 응답 완료 / 통신종료"
 
-    logger.info "[LINE:#{__LINE__}] 해당 user를 찾는 중..."
-    # 들어온 설문지 저장하기
-    begin user = User.find(@user.id)
+      @success = {success:"설문지 응답 완료", report: @report}
+      render json: @success, status: :ok
+
+
+    # 설문지를 찾을 수 없을 때
+    rescue Mongoid::Errors::DocumentNotFound
+      logger.error "[LINE:#{__LINE__}] user에 해당 reportId의 설문지를 찾을 수 없음 / 통신종료"
+      @error = {msg:"user에 해당 reportId의 설문지를 찾을 수 없습니다.", code:"500", time:Time.now}
+      render json: @error, status: :internal_server_error
+    end
+  end
+
+
+  # [POST] /predictReports => 클라이언트로 부터 설문지 값을 받는 메서드 (check_jwt 메서드가 선행됨)
+  def create_survey
+
+    # logger.info "[LINE:#{__LINE__}] 해당 user를 찾는 중..."
+    # begin user = User.find(@user.id)
       logger.info "[LINE:#{__LINE__}] 해당 user 찾음, 설문지 저장 중..."
       report = Report.new
       report.survey_id = params[:surveyId]
@@ -27,9 +45,9 @@ class ReportsController < ApplicationController
         report.data << ssumji
       end
 
-      user.predictReports << report
-      user.last_surveyed = DateTime.now
-      if user.save && params[:surveyId] && params[:modelId] && params[:version]
+      @user.predictReports << report
+      @user.last_surveyed = DateTime.now
+      if @user.save && params[:surveyId] && params[:modelId] && params[:version]
         logger.info "[LINE:#{__LINE__}] user에 설문지 저장완료, RabbitMQ로 전송 시작..."
 
         # RabbitMQ로 Q보내기
@@ -50,7 +68,7 @@ class ReportsController < ApplicationController
           puts " [x] Sent #{requestSurvey.to_json}"
           conn.close
           logger.info "[LINE:#{__LINE__}] RabbitMQ로 전송 완료 / 통신종료"
-          @success = {success:"큐 전송에 성공했습니다."}
+          @success = {success:"설문지 저장 완료, 큐 전송에 성공했습니다."}
           render json: @success, status: :ok
         # RabbitMQ 전송 실패시
         rescue Bunny::TCPConnectionFailed
@@ -65,15 +83,97 @@ class ReportsController < ApplicationController
         @error = {msg:"서버 에러로 설문지 저장에 실패했습니다. (surveyId, modelId, version 파라미터가 존재해야함)", code:"500", time:Time.now}
         render json: @error, status: :internal_server_error
       end
-    # user가 없다면 에러
+    # user가 없다면 에러 (jwt 에서 유저를 반환하기 때문에 체크할 필요 없음)
+    # rescue Mongoid::Errors::DocumentNotFound
+    #   logger.error "[LINE:#{__LINE__}] userId에 해당하는 user가 없음 / 통신종료"
+    #   @error = {msg: "올바른 userId 값을 넣어주세요.", code:"400", time:Time.now}
+    #   render json: @error, status: :bad_request
+    # rescue Mongoid::Errors::InvalidFind
+    #   logger.error "[LINE:#{__LINE__}] request body에 userId가 없음 / 통신종료"
+    #   @error = {msg: "body에 userId 값을 넣어주세요.", code:"400", time:Time.now}
+    #   render json: @error, status: :bad_request
+    # end
+  end
+
+  # [PUT] /predictReports => 설문지 내용 수정하는 메서드 (check_jwt 메서드가 선행됨)
+  def update_survey
+    logger.info "[LINE:#{__LINE__}] 해당 user 찾음, 업데이트할 설문지 찾는 중..."
+    begin @report = @user.predictReports.find_by(_id:params[:reportId])
+      logger.info "[LINE:#{__LINE__}] 설문지 확인, 설문지 업데이트 중..."
+      @report.requestTime = DateTime.now
+      @report.is_processed = false
+      params[:data].each do |data|
+        ssumji = Ssumji.new
+        ssumji.questionCode = data[:questionCode]
+        ssumji.answerCode = data[:answerCode]
+        @report.data << ssumji
+      end
+
+      @report.save
+      @user.last_surveyed = DateTime.now
+      # if @user.save && params[:surveyId] && params[:modelId] && params[:version]
+      # updte에도 id 들이 필요한가?
+      if @user.save
+        logger.info "[LINE:#{__LINE__}] user에 설문지 업데이트 완료, RabbitMQ로 전송 시작..."
+
+        # RabbitMQ로 Q보내기
+        begin
+          conn = Bunny.new(:host => "expirit.co.kr", :vhost => "pushHost", :user => "ssumtago", password: @@rabbitMQ_secret)
+          conn.start
+          ch   = conn.create_channel
+          q    = ch.queue("ssumPredict")
+          requestSurvey = {userId: @user.id.to_s,
+                           requestTime: @report.requestTime,
+                           reportId: @report.id.to_s,
+                           surveyId: @report.survey_id,
+                           modelId: @report.model_id,
+                           version: @report.version,
+                           data: params[:data]
+                          }
+          ch.default_exchange.publish( requestSurvey.to_json, :routing_key => q.name )
+          puts " [x] Sent #{requestSurvey.to_json}"
+          conn.close
+          logger.info "[LINE:#{__LINE__}] RabbitMQ로 전송 완료 / 통신종료"
+          @success = {success:"설문지 업데이트 완료, 큐 전송에 성공했습니다."}
+          render json: @success, status: :ok
+        # RabbitMQ 전송 실패시
+        rescue Bunny::TCPConnectionFailed
+          logger.error "[LINE:#{__LINE__}] RabbitMQ 연결 끊어짐 / 통신종료"
+          @error = {msg:"서버 에러로 RabbitMQ와의 연결에 실패했습니다.", code:"500", time:Time.now}
+          render json: @error, status: :internal_server_error
+        end
+
+      # user에 설문지 저장 실패시
+      else
+        logger.error "[LINE:#{__LINE__}] 서버 에러로 설문지 업데이트 실패 / 통신종료"
+        # @error = {msg:"서버 에러로 설문지 저장에 실패했습니다. (surveyId, modelId, version 파라미터가 존재해야함)", code:"500", time:Time.now}
+        @error = {msg:"서버 에러로 설문지 저장에 실패했습니다.", code:"500", time:Time.now}
+        render json: @error, status: :internal_server_error
+      end
+
+    # 설문지를 찾을 수 없을 때
     rescue Mongoid::Errors::DocumentNotFound
-      logger.error "[LINE:#{__LINE__}] userId에 해당하는 user가 없음 / 통신종료"
-      @error = {msg: "올바른 userId 값을 넣어주세요.", code:"400", time:Time.now}
-      render json: @error, status: :bad_request
-    rescue Mongoid::Errors::InvalidFind
-      logger.error "[LINE:#{__LINE__}] request body에 userId가 없음 / 통신종료"
-      @error = {msg: "body에 userId 값을 넣어주세요.", code:"400", time:Time.now}
-      render json: @error, status: :bad_request
+      logger.error "[LINE:#{__LINE__}] user에 해당 reportId의 설문지를 찾을 수 없음 / 통신종료"
+      @error = {msg:"user에 해당 reportId의 설문지를 찾을 수 없습니다.", code:"500", time:Time.now}
+      render json: @error, status: :internal_server_error
+    end
+  end
+
+  # [DELETE] /predictReports => 설문지를 삭제하는 메서드 (check_jwt 메서드가 선행됨)
+  def delete_survey
+    logger.info "[LINE:#{__LINE__}] 해당 user 찾음, 삭제할 설문지 찾는 중..."
+    begin @report = @user.predictReports.find_by(_id:params[:reportId])
+      logger.info "[LINE:#{__LINE__}] 설문지 확인, 설문지 삭제 완료 / 통신종료"
+      @report.destroy
+
+      @success = {success:"설문지 삭제 완료"}
+      render json: @success, status: :ok
+
+    # 설문지를 찾을 수 없을 때
+    rescue Mongoid::Errors::DocumentNotFound
+      logger.error "[LINE:#{__LINE__}] user에 해당 reportId의 설문지를 찾을 수 없음 / 통신종료"
+      @error = {msg:"user에 해당 reportId의 설문지를 찾을 수 없습니다.", code:"500", time:Time.now}
+      render json: @error, status: :internal_server_error
     end
   end
 

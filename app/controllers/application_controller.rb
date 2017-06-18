@@ -20,7 +20,7 @@ class ApplicationController < ActionController::API
           logger.info "[LINE:#{__LINE__}] jwt 만료시간 확인 중..."
           # 만료시간 체크
           if Time.now <= Time.parse(@info["expireTime"])
-            logger.info "[LINE:#{__LINE__}] jwt 인증 성공"
+            logger.info "[LINE:#{__LINE__}] jwt 인증 성공, user 반환 / 통신 종료"
             @user = User.find_by(email: @info["email"])
           else
             logger.error "[LINE:#{__LINE__}] jwt 만료 / 통신 종료"
