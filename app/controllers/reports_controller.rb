@@ -6,6 +6,8 @@ require 'json'
 class ReportsController < ApplicationController
   before_action :check_jwt, only: [:read_sruvey, :create_survey, :update_survey, :delete_survey]
   @@rabbitMQ_secret = ENV['RabbitMQ_pwd']
+  @@fcm_auth = ENV['FCM_AUTHORIZATION']
+  @@haesung_phone_token = ENV['HS_TOKEN']
 
   # [GET] /predictReports => 설문지를 불러오는 메서드 (check_jwt 메서드가 선행됨)
   def read_sruvey
@@ -197,7 +199,7 @@ class ReportsController < ApplicationController
           # fcm 시작
           @headers = {
             "Content-Type" => "application/json",
-            "Authorization" => "key=AAAAXq8WLYs:APA91bEuNpbkWAL5mu2XCIdNsV8DoLOd9BNBgbB9WgBFjT1GdgcUhcdEijpsc5soDGj2T9M9YQXO_NAVk2YGFVBpZNBzdViTCwfWf0uV2hHfn7P5Q-PbXxsn1LipS-ZZBCexdJiwcTbe "
+            "Authorization" => @@fcm_auth
           }
           @body = {
             "data" => {
@@ -216,7 +218,7 @@ class ReportsController < ApplicationController
                 "result" => report.result
               }
             },
-            "to" => "e82aYCZuJ7Q:APA91bHORt061lpWdnHpInevhK6GOafzqY521E1oZKReLtj7G-70pczc3rzEt-AOvdjOxygDljprMlaf4I-IY5qiJsI2Hcf0TcoicUe70gY2-qB6bsUX46ox1YXVIXCNynCob9q8Mwdw"
+            "to" => @@haesung_phone_token
           }
           puts @body.to_json
           @result = HTTParty.post(
