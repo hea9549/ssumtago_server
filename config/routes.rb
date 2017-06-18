@@ -15,7 +15,7 @@ Rails.application.routes.draw do
   get 'predictReports/:reportId' => 'reports#read_sruvey'
   post 'predictReports' => 'reports#create_survey'
   patch 'predictReports' => 'reports#update_survey'
-  delete 'predictReports' => 'reports#delete_survey'
+  delete 'predictReports/:reportId' => 'reports#delete_survey'
 
 
   ## 결과값 요청
