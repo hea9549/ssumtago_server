@@ -26,6 +26,8 @@ module SsumtagoApi
     Mongoid.load!('./config/mongoid.yml')
     # Mongoid.embedded_object_id = false
 
+    config.logger = ActiveSupport::Logger.new('log/custom.log')
+
     # Only loads a smaller set of middleware suitable for API only apps.
     # Middleware like session, flash, cookies can be added back manually.
     # Skip views, helpers and assets when generating a new resource.

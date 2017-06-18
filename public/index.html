@@ -1,18 +1,36 @@
 <!DOCTYPE html>
-<html ng-app="Ssumtago">
+<html ng-app="Ssumtago" ng-strict-di>
   <head>
     <meta charset="utf-8">
     <title>User Angular</title>
   </head>
   <body>
-    <h1>썸타고</h1>
-    <div ng-controller="UsersController as users">
-      <ui-view></ui-view>
-    </div>
+    <loading ng-if="$ctrl.show"></loading>
+
+    <nav>
+      네브바
+    </nav>
+
+
+    <ui-view></ui-view>
+
+    <!-- library -->
     <script src="lib/angular.min.js"></script>
     <script src="lib/angular-ui-router.min.js"></script>
-    <script src="src/app.js"></script>
+
+    <!-- Main ssumtago Module -->
+    <script src="src/ssumtago.module.js"></script>
+
+    <!-- Common Module -->
+    <script src="src/common/common.module.js"></script>
+    <script src="src/common/loading/loading.component.js"></script>
+
+    <!-- Public Module -->
+    <script src="src/public/public.module.js"></script>
+    <script src="src/public/public.routes.js"></script>
+
+    <!-- <script src="src/app.js"></script>
     <script src="src/fbLogin.js"></script>
-    <script src="src/router.js"></script>
+    <script src="src/router.js"></script> -->
   </body>
 </html>
