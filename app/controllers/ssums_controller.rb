@@ -26,7 +26,7 @@ class SsumsController < ApplicationController
     begin @ssum = @user.ssums.find_by(id:params[:ssumId])
       logger.info "[LINE:#{__LINE__}] 썸 확인, 썸 데이터 응답 완료 / 통신종료"
 
-      @success = {success:"썸 데이터 응답 완료", report: @ssum}
+      @success = {success:"썸 데이터 응답 완료", ssum: @ssum}
       render json: @success, status: :ok
 
     # 썸을 찾을 수 없을 때
@@ -71,7 +71,7 @@ class SsumsController < ApplicationController
       logger.info "[LINE:#{__LINE__}] 썸 확인, 썸 삭제 완료 / 통신종료"
       @ssum.destroy
 
-      @success = {success:"썸 삭제 완료", report: @ssum}
+      @success = {success:"썸 삭제 완료"}
       render json: @success, status: :ok
 
     # 썸을 찾을 수 없을 때
