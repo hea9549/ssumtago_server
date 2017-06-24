@@ -45,6 +45,7 @@ class UsersController < ApplicationController
           if @user.save
             logger.info "[LINE:#{__LINE__}] 신규 회원 가입 성공 / 통신종료"
             @info = {email: @user.email, role:["user"], creator: "API server", expireTime: Time.now + 24.hours}
+            @userInfo = {id: @user.id.to_s, email: @user.email, name: @user.name, joinType: @user.joinType }
             @token = JWT.encode @info, @@hmac_secret, 'HS256'
             @success = {success:"회원가입에 성공했습니다.", jwt: @token}
             render json: @success, status: :created

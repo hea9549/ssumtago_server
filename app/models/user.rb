@@ -15,8 +15,8 @@ class User
   field :joinType, as: :join_type, type: String
   field :fcmToken, as: :fcm_token, type: String
   field :lastSurveyed, as: :last_surveyed, type: DateTime
-  # Report 모델을 embed함
-  embeds_many :predictReports, class_name:"Report"
+  # Ssum 모델을 embed함
+  embeds_many :ssums, class_name:"Ssum"
   # email, name, joinType이 존재해야함
   validates_presence_of :email
   validates_presence_of :name

@@ -8,8 +8,8 @@ class Report
   field :responseTime, as: :response_time, type: DateTime
   field :isProcessed, as: :is_processed, type: Boolean
   field :result, type: Array
-  # User 모델에 embeded됨
-  embedded_in :user
+  # Ssum 모델에 embeded됨
+  embedded_in :ssum
   # Ssumji 모델을 embed함
   embeds_many :data, class_name:"Ssumji"
   # surveyId, modelId, version 존재해야함
