@@ -6,7 +6,7 @@ logger.formatter = Logger::Formatter.new
 
 
 class UsersController < ApplicationController
-  before_action :check_jwt, only:[:show, :fcm_update]
+  before_action :check_jwt, only:[:show, :update, :delete, :fcm_update]
   @@hmac_secret = ENV['HAMC_SECRET']
 
   # [POST] /sessions => 로그인 요청을 처리하는 메서드
@@ -45,9 +45,9 @@ class UsersController < ApplicationController
           if @user.save
             logger.info "[LINE:#{__LINE__}] 신규 회원 가입 성공 / 통신종료"
             @info = {email: @user.email, role:["user"], creator: "API server", expireTime: Time.now + 24.hours}
-            @userInfo = {id: @user.id.to_s, email: @user.email, name: @user.name, joinType: @user.joinType }
+            @userInfo = {id: @user.id.to_s, email: @user.email, name: @user.name, joinType: @user.joinType, ssums: @user.ssums}
             @token = JWT.encode @info, @@hmac_secret, 'HS256'
-            @success = {success:"회원가입에 성공했습니다.", jwt: @token}
+            @success = {success:"회원가입에 성공했습니다.", jwt: @token, userInfo: @userInfo}
             render json: @success, status: :created
           else
             logger.error "[LINE:#{__LINE__}] 서버 에러로 회원가입 실패 / 통신종료"
@@ -151,8 +151,9 @@ class UsersController < ApplicationController
         if @user.save
           logger.info "[LINE:#{__LINE__}] 회원가입 저장 완료 / 통신종료"
           @info = {email: @user.email, role:["user"], creator: "API server", expireTime: Time.now + 24.hours}
+          @userInfo = {id: @user.id.to_s, email: @user.email, name: @user.name, joinType: @user.joinType, ssums: @user.ssums}
           @token = JWT.encode @info, @@hmac_secret, 'HS256'
-          @success = {success:"회원가입에 성공했습니다.", jwt: @token}
+          @success = {success:"회원가입에 성공했습니다.", jwt: @token, userInfo: @userInfo}
           render json: @success, status: :created
         else
           logger.error "[LINE:#{__LINE__}] 서버에러로 회원가입 저장 실패 / 통신종료"
@@ -168,10 +169,37 @@ class UsersController < ApplicationController
     end
   end
 
-  # [GET] /users => 유저 조회하는 메서드
+  # [GET] /users/:userId => 유저 조회하는 메서드
   def show
-    logger.info "[LINE:#{__LINE__}] jwt에 해당하는 user 값 리턴완료 / 통신종료"
-    render json: @user, status: :ok
+    logger.info "[LINE:#{__LINE__}] jwt에 해당하는 user 정보 리턴완료 / 통신종료"
+    @userInfo = {id: @user.id.to_s, email: @user.email, name: @user.name, joinType: @user.joinType, ssums: @user.ssums}
+    render json: @userInfo, status: :ok
+  end
+
+  # [PATCH] /users/:userId => 유저를 수정하는 멧서드
+  def update
+    logger.info "[LINE:#{__LINE__}] 유저 확인, 유저 데이터 수정 중..."
+    if @user.update(user_params)
+      if params[:password]
+        @user.password = Digest::SHA1.hexdigest(params[:password])
+        @user.save
+      end
+      logger.info "[LINE:#{__LINE__}] 유저 수정 완료 / 통신종료"
+      @success = {success:"유저 정보 수정 완료"}
+      render json: @success, status: :created
+    else
+      logger.error "[LINE:#{__LINE__}] 서버에러로 저장 실패 / 통신종료"
+      @error = {msg: "서버에러로 유저 정보 수정에 실패 했습니다.", code:"500", time:Time.now}
+      render json: @error, status: :internal_server_error
+    end
+  end
+
+  # [DELETE] /users/:userId => 유저를 삭제하는 메서드
+  def delete
+    logger.info "[LINE:#{__LINE__}] 유저를 찾음, 삭제 완료 / 통신종료"
+    @user.destroy
+    @success = {success:"유저 삭제 완료"}
+    render json: @success, status: :created
   end
 
   # [PATCH] /users => 유저 fcm 업데이트하는 메서드
@@ -202,7 +230,8 @@ class UsersController < ApplicationController
 
     # 명시된 key값으로 날라오는 parameter들만 받는 메서드 (white list)
     def user_params
-      params.permit(:email, :password, :joinType, :name, :sex, :age, :fcmToken, :createdTime, :updatedTime, :lastSurveyed, :ssums)
+      params.permit(:email, :password, :joinType, :name, :sex, :age, :fcmToken)
+      # params.require(:user).permit(:email, :password, :joinType, :name, :sex, :age, :fcmToken)
     end
 
 end

@@ -5,10 +5,14 @@ Rails.application.routes.draw do
   post 'users' => 'users#create'
   ## 유저 조회
   get 'users' => 'users#show'
-  ## 수정된 fcm 토큰
-  patch 'users' =>'users#fcm_update'
+  ## 유저 업데이트
+  patch 'users' => 'users#update'
+  ## 유저 삭제
+  delete 'users' => 'users#delete'
   ## 로그인
   post 'sessions' => 'users#login'
+  ## 유저 fcm업데이트
+  # patch 'users/:userId' =>'users#fcm_update'
 
 
   # Ssums Controller 썸 관련 Route
