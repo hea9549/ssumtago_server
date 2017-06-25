@@ -11,8 +11,9 @@ class SsumsController < ApplicationController
     @user.ssums << ssum
     if @user.save
       logger.info "[LINE:#{__LINE__}] 썸 저장완료, 통신종료"
-      @success = {success:"썸 저장에 성공했습니다."}
-      render json: @success, status: :ok
+      render json: ssum, status: :ok
+      # @success = {success:"썸 저장에 성공했습니다."}
+      # render json: @success, status: :ok
     else
       logger.error "[LINE:#{__LINE__}] 서버 에러로 썸 저장 실패 / 통신종료"
       @error = {msg:"서버 에러로 썸 저장에 실패했습니다.", code:"500", time:Time.now}
@@ -26,8 +27,9 @@ class SsumsController < ApplicationController
     begin @ssum = @user.ssums.find_by(id:params[:ssumId])
       logger.info "[LINE:#{__LINE__}] 썸 확인, 썸 데이터 응답 완료 / 통신종료"
 
-      @success = {success:"썸 데이터 응답 완료", ssum: @ssum}
-      render json: @success, status: :ok
+      render json: @ssum, status: :ok
+      # @success = {success:"썸 데이터 응답 완료", ssum: @ssum}
+      # render json: @success, status: :ok
 
     # 썸을 찾을 수 없을 때
     rescue Mongoid::Errors::DocumentNotFound
@@ -47,8 +49,9 @@ class SsumsController < ApplicationController
       @ssum.sex = params[:sex]
       if @ssum.save
         logger.info "[LINE:#{__LINE__}] 썸 수정완료 / 통신종료"
-        @success = {success:"썸 수정에 성공했습니다."}
-        render json: @success, status: :ok
+        render json: @ssum, status: :ok
+        # @success = {success:"썸 수정에 성공했습니다."}
+        # render json: @success, status: :ok
       else
         logger.error "[LINE:#{__LINE__}] 서버 에러로 썸 저장 실패 / 통신종료"
         @error = {msg:"서버 에러로 썸 저장에 실패했습니다.", code:"500", time:Time.now}
