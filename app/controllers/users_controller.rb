@@ -28,8 +28,11 @@ class UsersController < ApplicationController
           # if @user.authenticate(Digest::SHA1.hexdigest(params[:password]))? true: false
             @info = {email: @user["email"], role:["user"], creator: "API server", expireTime: Time.now + 24.hours}
             @token = JWT.encode @info, @@hmac_secret, 'HS256'
-            @success = {success:"로그인에 성공했습니다.", jwt: @token}
-            render json: @success, status: :ok
+            @userInfo = @user.as_json(:except => [:password_digest,:created_at, :updated_at])
+            @userInfo["jwt"] = @token
+            render json: @userInfo, status: :ok
+            # @success = {success:"로그인에 성공했습니다.", jwt: @token}
+            # render json: @success, status: :ok
           # else
           #   @error = {msg: "비밀번호가 올바르지 않습니다.", code:"400", time:Time.now}
           #   render json: @error, status: :bad_request
@@ -45,10 +48,12 @@ class UsersController < ApplicationController
           if @user.save
             logger.info "[LINE:#{__LINE__}] 신규 회원 가입 성공 / 통신종료"
             @info = {email: @user.email, role:["user"], creator: "API server", expireTime: Time.now + 24.hours}
-            @userInfo = {id: @user.id.to_s, email: @user.email, name: @user.name, joinType: @user.joinType, ssums: @user.ssums}
             @token = JWT.encode @info, @@hmac_secret, 'HS256'
-            @success = {success:"회원가입에 성공했습니다.", jwt: @token, userInfo: @userInfo}
-            render json: @success, status: :created
+            @userInfo = @user.as_json(:except => [:password_digest,:created_at, :updated_at])
+            @userInfo["jwt"] = @token
+            render json: @userInfo, status: :created
+            # @success = {success:"회원가입에 성공했습니다.", jwt: @token, userInfo: @userInfo}
+            # render json: @success, status: :created
           else
             logger.error "[LINE:#{__LINE__}] 서버 에러로 회원가입 실패 / 통신종료"
             @error = {msg:"서버 에러로 저장이 실패했습니다.", code:"500", time:Time.now}
@@ -71,8 +76,11 @@ class UsersController < ApplicationController
           logger.info "[LINE:#{__LINE__}] 비밀번호 인증성공, 로그인 성공 / 통신종료"
           @info = {email: @user["email"], role:["user"], creator: "API server", expireTime: Time.now + 24.hours}
           @token = JWT.encode @info, @@hmac_secret, 'HS256'
-          @success = {success:"로그인에 성공했습니다.", jwt: @token}
-          render json: @success, status: :ok
+          @userInfo = @user.as_json(:except => [:password_digest,:created_at, :updated_at])
+          @userInfo["jwt"] = @token
+          render json: @userInfo, status: :ok
+          # @success = {success:"로그인에 성공했습니다.", jwt: @token}
+          # render json: @success, status: :ok
         else
           logger.error "[LINE:#{__LINE__}] 비밀번호 인증실패 / 통신종료"
           @error = {msg: "비밀번호가 올바르지 않습니다.", code:"400", time:Time.now}
@@ -90,45 +98,6 @@ class UsersController < ApplicationController
       @error = {msg: "joinType 값을 넣어주세요! (email/facebook)", code:"400", time:Time.now}
       render json: @error, status: :bad_request
     end
-
-
-
-    # 이전 코드 2017.06.09
-    # 곧 삭제 예정
-      # begin @user = User.where(joinType: params[:joinType]).find_by(email: params[:email])
-      #   if @user.authenticate(Digest::SHA1.hexdigest(params[:password]))? true: false
-      #     @info = {email: @user["email"], role:["user"], creator: "API server", expireTime: Time.now + 24.hours}
-      #     @token = JWT.encode @info, @@hmac_secret, 'HS256'
-      #     @success = {success:"로그인에 성공했습니다.", jwt: @token}
-      #     render json: @success, status: :ok
-      #   else
-      #     @error = {msg: "비밀번호가 올바르지 않습니다.", code:"400", time:Time.now}
-      #     render json: @error, status: :bad_request
-      #   end
-      # rescue Mongoid::Errors::DocumentNotFound
-      #   if params[:joinType] == "facebook"
-      #     @fb_user = CheckFbToken.new(params[:password])
-      #     begin @is_valid = @fb_user.verify
-      #       @user = User.new(user_params)
-      #       @user.password = Digest::SHA1.hexdigest(params[:password])
-      #       if @user.save
-      #         @info = {email: @user.email, role:["user"], creator: "API server", expireTime: Time.now + 24.hours}
-      #         @token = JWT.encode @info, @@hmac_secret, 'HS256'
-      #         @success = {success:"회원가입에 성공했습니다.", jwt: @token}
-      #         render json: @success, status: :created
-      #       else
-      #         @error = {msg:"서버 에러로 저장이 실패했습니다.", code:"500", time:Time.now}
-      #         render json: @error, status: :internal_server_error
-      #       end
-      #     rescue Koala::Facebook::AuthenticationError
-      #       @error = {msg:"페이스북 토큰이 유효하지 않습니다.", code:"401", time:Time.now}
-      #       render json: @error, status: :unauthorized
-      #     end
-      #   else
-      #     @error = {msg: "존재하지 않는 이메일입니다.", code:"400", time:Time.now}
-      #     render json: @error, status: :bad_request
-      #   end
-      # end
   end
 
   # [POST] /users => 이메일 회원가입을 처리하는 메서드
@@ -151,10 +120,11 @@ class UsersController < ApplicationController
         if @user.save
           logger.info "[LINE:#{__LINE__}] 회원가입 저장 완료 / 통신종료"
           @info = {email: @user.email, role:["user"], creator: "API server", expireTime: Time.now + 24.hours}
-          @userInfo = {id: @user.id.to_s, email: @user.email, name: @user.name, joinType: @user.joinType, ssums: @user.ssums}
           @token = JWT.encode @info, @@hmac_secret, 'HS256'
-          @success = {success:"회원가입에 성공했습니다.", jwt: @token, userInfo: @userInfo}
-          render json: @success, status: :created
+          # @success = {success:"회원가입에 성공했습니다.", jwt: @token, userInfo: @userInfo}
+          @userInfo = @user.as_json(:except => [:password_digest,:created_at, :updated_at])
+          @userInfo["jwt"] = @token
+          render json: @userInfo, status: :created
         else
           logger.error "[LINE:#{__LINE__}] 서버에러로 회원가입 저장 실패 / 통신종료"
           @error = {msg:"서버 에러로 저장이 실패했습니다.", code:"500", time:Time.now}
@@ -172,7 +142,7 @@ class UsersController < ApplicationController
   # [GET] /users/:userId => 유저 조회하는 메서드
   def show
     logger.info "[LINE:#{__LINE__}] jwt에 해당하는 user 정보 리턴완료 / 통신종료"
-    @userInfo = {id: @user.id.to_s, email: @user.email, name: @user.name, joinType: @user.joinType, ssums: @user.ssums}
+    @userInfo = @user.as_json(:except => [:password_digest,:created_at, :updated_at])
     render json: @userInfo, status: :ok
   end
 
@@ -185,8 +155,8 @@ class UsersController < ApplicationController
         @user.save
       end
       logger.info "[LINE:#{__LINE__}] 유저 수정 완료 / 통신종료"
-      @success = {success:"유저 정보 수정 완료"}
-      render json: @success, status: :created
+      @userInfo = @user.as_json(:except => [:password_digest,:created_at, :updated_at])
+      render json: @userInfo, status: :created
     else
       logger.error "[LINE:#{__LINE__}] 서버에러로 저장 실패 / 통신종료"
       @error = {msg: "서버에러로 유저 정보 수정에 실패 했습니다.", code:"500", time:Time.now}
