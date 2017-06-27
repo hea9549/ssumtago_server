@@ -12,7 +12,7 @@ class ReportsController < ApplicationController
   # [GET] /predictReports => 설문지를 불러오는 메서드 (check_jwt 메서드가 선행됨)
   def read_sruvey
     logger.info "[LINE:#{__LINE__}] 해당 user 찾음, 불러올 설문지 찾는 중..."
-    begin @report = @user.predictReports.find_by(_id:params[:reportId])
+    begin @report = @user.ssums.find_by(id:params[:ssumId]).predictReports.find_by(_id:params[:reportId])
       logger.info "[LINE:#{__LINE__}] 설문지 확인, 설문지 데이터 응답 완료 / 통신종료"
 
       @success = {success:"설문지 응답 완료", report: @report}
@@ -47,7 +47,9 @@ class ReportsController < ApplicationController
         report.data << ssumji
       end
 
-      @user.predictReports << report
+      # user의 해당 ssum에 설문을 저장
+      ssums = @user.ssums.find_by(id: params[:ssumId])
+      ssums.predictReports << report
       @user.last_surveyed = DateTime.now
       if @user.save && params[:surveyId] && params[:modelId] && params[:version]
         logger.info "[LINE:#{__LINE__}] user에 설문지 저장완료, RabbitMQ로 전송 시작..."
@@ -97,13 +99,15 @@ class ReportsController < ApplicationController
     # end
   end
 
-  # [PUT] /predictReports => 설문지 내용 수정하는 메서드 (check_jwt 메서드가 선행됨)
+  # [PATCH] /predictReports => 설문지 내용 수정하는 메서드 (check_jwt 메서드가 선행됨)
   def update_survey
     logger.info "[LINE:#{__LINE__}] 해당 user 찾음, 업데이트할 설문지 찾는 중..."
-    begin @report = @user.predictReports.find_by(_id:params[:reportId])
+    begin @report = @user.ssums.find_by(id:params[:ssumId]).predictReports.find_by(_id:params[:reportId])
       logger.info "[LINE:#{__LINE__}] 설문지 확인, 설문지 업데이트 중..."
       @report.requestTime = DateTime.now
       @report.is_processed = false
+      # 이전 설문 내용들을 지우고 다시 추가하기
+      @report.data.destroy
       params[:data].each do |data|
         ssumji = Ssumji.new
         ssumji.questionCode = data[:questionCode]
@@ -114,7 +118,7 @@ class ReportsController < ApplicationController
       @report.save
       @user.last_surveyed = DateTime.now
       # if @user.save && params[:surveyId] && params[:modelId] && params[:version]
-      # updte에도 id 들이 필요한가?
+      # update에도 id 들이 필요한가?
       if @user.save
         logger.info "[LINE:#{__LINE__}] user에 설문지 업데이트 완료, RabbitMQ로 전송 시작..."
 
@@ -164,7 +168,7 @@ class ReportsController < ApplicationController
   # [DELETE] /predictReports => 설문지를 삭제하는 메서드 (check_jwt 메서드가 선행됨)
   def delete_survey
     logger.info "[LINE:#{__LINE__}] 해당 user 찾음, 삭제할 설문지 찾는 중..."
-    begin @report = @user.predictReports.find_by(_id:params[:reportId])
+    begin @report = @user.ssums.find_by(id:params[:ssumId]).predictReports.find_by(_id:params[:reportId])
       logger.info "[LINE:#{__LINE__}] 설문지 확인, 설문지 삭제 완료 / 통신종료"
       @report.destroy
 
@@ -306,5 +310,17 @@ class ReportsController < ApplicationController
         render json: @error, status: :internal_server_error
     end
   end
+
+  private
+    # Reports 컨트롤러 공용메서드를 적는 부분
+
+    # def set_ssums
+    #   @ssum = User.find(params[:ssumId])
+    # end
+
+    # 명시된 key값으로 날라오는 parameter들만 받는 메서드 (white list)
+    def report_params
+      # params.permit(:email, :password, :joinType, :name, :sex, :age, :fcmToken, :createdTime, :updatedTime, :lastSurveyed, :ssums)
+    end
 
 end
