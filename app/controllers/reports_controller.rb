@@ -15,8 +15,8 @@ class ReportsController < ApplicationController
     begin @report = @user.ssums.find_by(id:params[:ssumId]).predictReports.find_by(_id:params[:reportId])
       logger.info "[LINE:#{__LINE__}] 설문지 확인, 설문지 데이터 응답 완료 / 통신종료"
 
-      @success = {success:"설문지 응답 완료", report: @report}
-      render json: @success, status: :ok
+      # @success = {success:"설문지 응답 완료", report: @report}
+      render json: @report, status: :ok
 
 
     # 설문지를 찾을 수 없을 때
@@ -72,8 +72,8 @@ class ReportsController < ApplicationController
           puts " [x] Sent #{requestSurvey.to_json}"
           conn.close
           logger.info "[LINE:#{__LINE__}] RabbitMQ로 전송 완료 / 통신종료"
-          @success = {success:"설문지 저장 완료, 큐 전송에 성공했습니다."}
-          render json: @success, status: :ok
+          # @success = {success:"설문지 저장 완료, 큐 전송에 성공했습니다."}
+          render json: @report, status: :created
         # RabbitMQ 전송 실패시
         rescue Bunny::TCPConnectionFailed
           logger.error "[LINE:#{__LINE__}] RabbitMQ 연결 끊어짐 / 통신종료"
@@ -140,8 +140,8 @@ class ReportsController < ApplicationController
           puts " [x] Sent #{requestSurvey.to_json}"
           conn.close
           logger.info "[LINE:#{__LINE__}] RabbitMQ로 전송 완료 / 통신종료"
-          @success = {success:"설문지 업데이트 완료, 큐 전송에 성공했습니다."}
-          render json: @success, status: :ok
+          # @success = {success:"설문지 업데이트 완료, 큐 전송에 성공했습니다."}
+          render json: @report, status: :ok
         # RabbitMQ 전송 실패시
         rescue Bunny::TCPConnectionFailed
           logger.error "[LINE:#{__LINE__}] RabbitMQ 연결 끊어짐 / 통신종료"
@@ -192,7 +192,7 @@ class ReportsController < ApplicationController
     begin user = User.find(params[:userId])
       logger.info "[LINE:#{__LINE__}] user 찾기 성공, user에 해당 report가 있는지 확인 중..."
       # reportId에 해당하는 predictReports가 있는지 확인
-      begin report = user.predictReports.find(params[:reportId])
+      begin report = user.ssums.find_by(id:params[:ssumId]).predictReports.find(params[:reportId])
         logger.info "[LINE:#{__LINE__}] report 찾기 성공, 해당 report에 결과 값 저장 중..."
         report.result = params[:predictResults]
         report.is_processed = true
@@ -233,8 +233,8 @@ class ReportsController < ApplicationController
           case @result.code.to_i
             when 200
               logger.info "[LINE:#{__LINE__}] fcm 전송 성공 / 통신종료 "
-              @success = {success:"예측 결과 응답 저장 후 성공적으로 fcm으로 보냈습니다."}
-              render json: @success, status: :ok
+              # @success = {success:"예측 결과 응답 저장 후 성공적으로 fcm으로 보냈습니다."}
+              render json: report, status: :ok
             when 401...600
               logger.error "[LINE:#{__LINE__}] 통신 에러로 fcm 전송 실패 / 통신종료 "
               @error = {msg:"예측 결과 응답 저장은 성공했지만, 서버 에러로 fcm전송에 실패했습니다.", code:"500", time:Time.now}

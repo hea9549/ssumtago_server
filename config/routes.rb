@@ -37,5 +37,5 @@ Rails.application.routes.draw do
   delete 'ssums/:ssumId/predictReports/:reportId' => 'reports#delete_survey'
 
   ## 결과값 요청
-  post 'predictResults' => 'reports#result'
+  post 'ssums/:ssumId/predictResults/:reportId' => 'reports#result'
 end
