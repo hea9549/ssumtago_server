@@ -14,6 +14,13 @@ Rails.application.routes.draw do
   ## 유저 fcm업데이트
   # patch 'users/:userId' =>'users#fcm_update'
 
+  # Surveys Controller 설문내용 관련 Route
+  get 'surveys' => 'surveys#index'
+  get 'surveys/:surveyId' => 'surveys#show'
+  post 'surveys' => 'surveys#create'
+  patch 'surveys/:surveyId' => 'surveys#update'
+  delete 'surveys/:surveyId' => 'surveys#delete'
+
 
   # Ssums Controller 썸 관련 Route
   ## 썸 Read

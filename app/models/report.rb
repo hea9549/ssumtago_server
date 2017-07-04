@@ -16,4 +16,11 @@ class Report
   # validates_presence_of :surveyId
   # validates_presence_of :modelId
   # validates_presence_of :version
+
+  # _id를 id로 수정
+  def as_json(*args)
+    res = super
+    res["id"] = res.delete("_id").to_s
+    res
+  end
 end

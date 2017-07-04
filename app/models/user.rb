@@ -22,6 +22,13 @@ class User
   validates_presence_of :name
   validates_presence_of :joinType
 
+  # _id를 id로 수정
+  def as_json(*args)
+    res = super
+    res["id"] = res.delete("_id").to_s
+    res
+  end
+
   # attr_accessor :email, :name, :sex, :age, :joinType, :fcmToken, :lastSurveyed, :ssums
 
   # initialize from both a Mongo and Web hash

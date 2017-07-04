@@ -2,14 +2,10 @@
 <html ng-app="Ssumtago" ng-strict-di>
   <head>
     <meta charset="utf-8">
-    <title>User Angular</title>
+    <title>썸타고</title>
   </head>
   <body>
-    <loading ng-if="$ctrl.show"></loading>
-
-    <nav>
-      네브바
-    </nav>
+    <!-- <loading ng-if="$ctrl.show"></loading> -->
 
 
     <ui-view></ui-view>
@@ -21,13 +17,9 @@
     <!-- Main ssumtago Module -->
     <script src="src/ssumtago.module.js"></script>
 
-    <!-- Common Module -->
-    <script src="src/common/common.module.js"></script>
-    <script src="src/common/loading/loading.component.js"></script>
-
-    <!-- Public Module -->
-    <script src="src/public/public.module.js"></script>
-    <script src="src/public/public.routes.js"></script>
+    <!-- User Module -->
+    <script src="src/user/user.module.js"></script>
+    <script src="src/user/user.routes.js"></script>
 
     <!-- <script src="src/app.js"></script>
     <script src="src/fbLogin.js"></script>

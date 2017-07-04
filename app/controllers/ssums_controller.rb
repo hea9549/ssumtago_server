@@ -16,7 +16,7 @@ class SsumsController < ApplicationController
       # render json: @success, status: :ok
     else
       logger.error "[LINE:#{__LINE__}] 서버 에러로 썸 저장 실패 / 통신종료"
-      @error = {msg:"서버 에러로 썸 저장에 실패했습니다.", code:"500", time:Time.now}
+      @error = {msg:"서버 에러로 썸 저장에 실패했습니다.(parameter에 name, age, sex 값은 필수입니다.)", code:"500", time:Time.now}
       render json: @error, status: :internal_server_error
     end
   end
