@@ -12,8 +12,9 @@ class ReportsController < ApplicationController
   # [GET] /predictReports => 설문지를 불러오는 메서드 (check_jwt 메서드가 선행됨)
   def read_sruvey
     logger.info "[LINE:#{__LINE__}] 해당 user 찾음, 불러올 설문지 찾는 중..."
-    begin @report = @user.ssums.find_by(id:params[:ssumId]).predictReports.find_by(_id:params[:reportId])
-      logger.info "[LINE:#{__LINE__}] 설문지 확인, 설문지 데이터 응답 완료 / 통신종료"
+    # begin @report = @user.ssums.find_by(id:params[:ssumId]).predictReports.find_by(_id:params[:reportId])
+    begin @report = @user.ssum.predictReports.find_by(_id:params[:reportId])
+        logger.info "[LINE:#{__LINE__}] 설문지 확인, 설문지 데이터 응답 완료 / 통신종료"
 
       # @success = {success:"설문지 응답 완료", report: @report}
       render json: @report, status: :ok
@@ -48,7 +49,9 @@ class ReportsController < ApplicationController
       end
 
       # user의 해당 ssum에 설문을 저장
-      ssums = @user.ssums.find_by(id: params[:ssumId])
+      # ssums가 배열에서 단일 객체로 변경
+      # ssums = @user.ssums.find_by(id: params[:ssumId])
+      ssums = @user.ssum
       ssums.predictReports << report
       @user.last_surveyed = DateTime.now
       if @user.save && params[:surveyId] && params[:modelId] && params[:version]
@@ -102,7 +105,8 @@ class ReportsController < ApplicationController
   # [PATCH] /predictReports => 설문지 내용 수정하는 메서드 (check_jwt 메서드가 선행됨)
   def update_survey
     logger.info "[LINE:#{__LINE__}] 해당 user 찾음, 업데이트할 설문지 찾는 중..."
-    begin @report = @user.ssums.find_by(id:params[:ssumId]).predictReports.find_by(_id:params[:reportId])
+    # begin @report = @user.ssums.find_by(id:params[:ssumId]).predictReports.find_by(_id:params[:reportId])
+    begin @report = @user.ssum.predictReports.find_by(_id:params[:reportId])
       logger.info "[LINE:#{__LINE__}] 설문지 확인, 설문지 업데이트 중..."
       @report.requestTime = DateTime.now
       @report.is_processed = false
@@ -168,7 +172,8 @@ class ReportsController < ApplicationController
   # [DELETE] /predictReports => 설문지를 삭제하는 메서드 (check_jwt 메서드가 선행됨)
   def delete_survey
     logger.info "[LINE:#{__LINE__}] 해당 user 찾음, 삭제할 설문지 찾는 중..."
-    begin @report = @user.ssums.find_by(id:params[:ssumId]).predictReports.find_by(_id:params[:reportId])
+    # begin @report = @user.ssums.find_by(id:params[:ssumId]).predictReports.find_by(_id:params[:reportId])
+    begin @report = @user.ssum.predictReports.find_by(_id:params[:reportId])
       logger.info "[LINE:#{__LINE__}] 설문지 확인, 설문지 삭제 완료 / 통신종료"
       @report.destroy
 

@@ -7,9 +7,10 @@ class Ssum
   field :age, type: String
   field :sex, type: String
   field :startDate, type: String
-  field :isFavorite, type: Boolean, default: false
+  # field :isFavorite, type: Boolean, default: false
   # User 모델에 embeded됨
-  embedded_in :user
+  # embedded_in :user
+  belongs_to :user, class_name:"User"
   # Report 모델을 embed함
   embeds_many :predictReports, class_name:"Report"
   # name, age, sex값이 존재해야함
@@ -21,6 +22,7 @@ class Ssum
   def as_json(*args)
     res = super
     res["id"] = res.delete("_id").to_s
+    res["user_id"] = res.delete("user_id").to_s
     res
   end
 end

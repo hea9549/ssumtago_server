@@ -44,7 +44,7 @@ class UsersController < ApplicationController
           @user.joinType = params[:joinType]
           @user.name = @fb_info[:name]
           @user.sex = params[:sex]
-          @user.age = params[:age]
+          @user.birthday = params[:birthday]
           if @user.save
             logger.info "[LINE:#{__LINE__}] 신규 회원 가입 성공 / 통신종료"
             @info = {email: @user.email, role:["user"], creator: "API server", expireTime: Time.now + 24.hours}
@@ -200,7 +200,7 @@ class UsersController < ApplicationController
 
     # 명시된 key값으로 날라오는 parameter들만 받는 메서드 (white list)
     def user_params
-      params.permit(:email, :password, :joinType, :name, :sex, :age, :fcmToken)
+      params.permit(:email, :password, :joinType, :name, :sex, :birthday, :fcmToken)
       # params.require(:user).permit(:email, :password, :joinType, :name, :sex, :age, :fcmToken)
     end
 

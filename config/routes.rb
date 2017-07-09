@@ -24,13 +24,16 @@ Rails.application.routes.draw do
 
   # Ssums Controller 썸 관련 Route
   ## 썸 Read
-  get 'ssums/:ssumId' => 'ssums#read_ssum'
+  # get 'ssums/:ssumId' => 'ssums#read_ssum'
+  get 'ssums' => 'ssums#read_ssum'
   ## 썸 Create
   post 'ssums' => 'ssums#create_ssum'
   ## 썸 Update
-  patch 'ssums/:ssumId' => 'ssums#update_ssum'
+  # patch 'ssums/:ssumId' => 'ssums#update_ssum'
+  patch 'ssums' => 'ssums#update_ssum'
   ## 썸 Delete
-  delete 'ssums/:ssumId' => 'ssums#delete_ssum'
+  # delete 'ssums/:ssumId' => 'ssums#delete_ssum'
+  delete 'ssums' => 'ssums#delete_ssum'
 
 
   # Reports Controller 설문지 관련 Route

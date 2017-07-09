@@ -44,6 +44,9 @@ class SurveysController < ApplicationController
   def destroy
     logger.info "[LINE:#{__LINE__}] 특정 서베이 삭제 완료 / 통신종료"
     @survey.destroy
+
+    @success = {success:"썸 삭제 완료"}
+    render json: @success, status: :ok
   end
 
   private
@@ -55,6 +58,41 @@ class SurveysController < ApplicationController
 
     # Only allow a trusted parameter "white list" through.
     def survey_params
-      params.permit(:name, :name, :answerCodes, :version, :id, :desc, :models => [], :questions => [])
+      params.permit(
+        :name,
+        :answerCodes,
+        :version,
+        :surveyId,
+        :desc,
+        :models =>
+          [
+          :id,
+          :accuracy,
+          :train_data,
+          :metaFileName,
+          :checkPoint,
+          :parameters =>
+            [
+            :featureNum,
+            :numOfUnit,
+            :keepProb,
+            :learningRate,
+            :maxLearningPoint
+            ]
+          ],
+        :questions =>
+          [
+            :desc,
+            :code,
+            :answers =>
+              [
+                :desc,
+                :img,
+                :code,
+                :name => []
+              ],
+            :name => []
+          ]
+      )
     end
 end
