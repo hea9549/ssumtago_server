@@ -4,10 +4,12 @@ class Survey
   field :models, type: Array, default: []
   field :name, type: String
   field :questions, type: Array, default: []
+  field :excludeCodes, type: Array, default: []
   field :answerCodes, type: String
   field :version, type: String
   field :surveyId, type: Integer
   field :desc, type: String
+  field :parameters, type: Object, default: {}
 
   # _id를 id로 수정
   def as_json(*args)

@@ -64,6 +64,14 @@ class SurveysController < ApplicationController
         :version,
         :surveyId,
         :desc,
+        :excludeCodes => [],
+        :parameters => [
+          :feature_num,
+          :num_of_unit,
+          :keep_prob,
+          :learning_rate,
+          :max_learning_point
+        ],
         :models =>
           [
           :id,
@@ -84,6 +92,7 @@ class SurveysController < ApplicationController
           [
             :desc,
             :code,
+            :imgCode,
             :answers =>
               [
                 :desc,
