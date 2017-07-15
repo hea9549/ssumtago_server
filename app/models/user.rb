@@ -17,7 +17,8 @@ class User
   field :lastSurveyed, as: :last_surveyed, type: DateTime
   # Ssum 모델을 embed함
   # embeds_many :ssums, class_name:"Ssum"
-  has_one :ssum, class_name:"Ssum"
+  # has_one :ssum, class_name:"Ssum"
+  embeds_many :predictReports, class_name:"Report"
   # email, name, joinType이 존재해야함
   validates_presence_of :email
   validates_presence_of :name

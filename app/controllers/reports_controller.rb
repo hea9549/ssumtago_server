@@ -13,7 +13,8 @@ class ReportsController < ApplicationController
   def read_sruvey
     logger.info "[LINE:#{__LINE__}] 해당 user 찾음, 불러올 설문지 찾는 중..."
     # begin @report = @user.ssums.find_by(id:params[:ssumId]).predictReports.find_by(_id:params[:reportId])
-    begin @report = @user.ssum.predictReports.find_by(_id:params[:reportId])
+    # begin @report = @user.ssum.predictReports.find_by(_id:params[:reportId])
+    begin @report = @user.predictReports.find_by(_id:params[:reportId])
         logger.info "[LINE:#{__LINE__}] 설문지 확인, 설문지 데이터 응답 완료 / 통신종료"
 
       # @success = {success:"설문지 응답 완료", report: @report}
@@ -51,8 +52,9 @@ class ReportsController < ApplicationController
       # user의 해당 ssum에 설문을 저장
       # ssums가 배열에서 단일 객체로 변경
       # ssums = @user.ssums.find_by(id: params[:ssumId])
-      ssums = @user.ssum
-      ssums.predictReports << report
+      # ssums = @user.ssum
+      # ssums.predictReports << report
+      @user.predictReports << report
       @user.last_surveyed = DateTime.now
       if @user.save && params[:surveyId] && params[:modelId] && params[:version]
         logger.info "[LINE:#{__LINE__}] user에 설문지 저장완료, RabbitMQ로 전송 시작..."
@@ -76,7 +78,7 @@ class ReportsController < ApplicationController
           conn.close
           logger.info "[LINE:#{__LINE__}] RabbitMQ로 전송 완료 / 통신종료"
           # @success = {success:"설문지 저장 완료, 큐 전송에 성공했습니다."}
-          render json: @report, status: :created
+          render json: report, status: :created
         # RabbitMQ 전송 실패시
         rescue Bunny::TCPConnectionFailed
           logger.error "[LINE:#{__LINE__}] RabbitMQ 연결 끊어짐 / 통신종료"
@@ -106,7 +108,8 @@ class ReportsController < ApplicationController
   def update_survey
     logger.info "[LINE:#{__LINE__}] 해당 user 찾음, 업데이트할 설문지 찾는 중..."
     # begin @report = @user.ssums.find_by(id:params[:ssumId]).predictReports.find_by(_id:params[:reportId])
-    begin @report = @user.ssum.predictReports.find_by(_id:params[:reportId])
+    # begin @report = @user.ssum.predictReports.find_by(_id:params[:reportId])
+    begin @report = @user.predictReports.find_by(_id:params[:reportId])
       logger.info "[LINE:#{__LINE__}] 설문지 확인, 설문지 업데이트 중..."
       @report.requestTime = DateTime.now
       @report.is_processed = false
@@ -173,7 +176,8 @@ class ReportsController < ApplicationController
   def delete_survey
     logger.info "[LINE:#{__LINE__}] 해당 user 찾음, 삭제할 설문지 찾는 중..."
     # begin @report = @user.ssums.find_by(id:params[:ssumId]).predictReports.find_by(_id:params[:reportId])
-    begin @report = @user.ssum.predictReports.find_by(_id:params[:reportId])
+    # begin @report = @user.ssum.predictReports.find_by(_id:params[:reportId])
+    begin @report = @user.predictReports.find_by(_id:params[:reportId])
       logger.info "[LINE:#{__LINE__}] 설문지 확인, 설문지 삭제 완료 / 통신종료"
       @report.destroy
 
@@ -197,7 +201,8 @@ class ReportsController < ApplicationController
     begin user = User.find(params[:userId])
       logger.info "[LINE:#{__LINE__}] user 찾기 성공, user에 해당 report가 있는지 확인 중..."
       # reportId에 해당하는 predictReports가 있는지 확인
-      begin report = user.ssums.find_by(id:params[:ssumId]).predictReports.find(params[:reportId])
+      # begin report = user.ssums.find_by(id:params[:ssumId]).predictReports.find(params[:reportId])
+      begin report = user.predictReports.find(params[:reportId])
         logger.info "[LINE:#{__LINE__}] report 찾기 성공, 해당 report에 결과 값 저장 중..."
         report.result = params[:predictResults]
         report.is_processed = true
@@ -210,25 +215,49 @@ class ReportsController < ApplicationController
             "Content-Type" => "application/json",
             "Authorization" => @@fcm_auth
           }
-          @body = {
-            "data" => {
-              # 03yyyy, 푸쉬의 종류
-              # 030001은 썸지 결과 푸쉬
-              "pushType" => "030001",
+          if params[:deviceType] == "android"
+            @body = {
               "data" => {
-                "_id" => report.id.to_s,
-                "surveyId" => report.survey_id,
-                "modelId" => report.model_id,
-                "version" => report.version,
-                "requestTime" => report.request_time,
-                "responseTime" => report.response_time,
-                "isProcessed" => report.is_processed,
-                "data" => report.data.map{|x|x.attributes},
-                "result" => report.result
-              }
-            },
-            "to" => @@haesung_phone_token
-          }
+                # 03yyyy, 푸쉬의 종류
+                # 030001은 썸지 결과 푸쉬
+                "pushType" => "030001",
+                "data" => {
+                  "_id" => report.id.to_s,
+                  "surveyId" => report.survey_id,
+                  "modelId" => report.model_id,
+                  "version" => report.version,
+                  "requestTime" => report.request_time,
+                  "responseTime" => report.response_time,
+                  "isProcessed" => report.is_processed,
+                  "data" => report.data.map{|x|x.attributes},
+                  "result" => report.result
+                }
+              },
+              # "to" => @@haesung_phone_token
+              "to" => user.fcmToken
+            }
+          elsif params[:deviceType] == "ios"
+            @body = {
+              "data" => {
+                # 03yyyy, 푸쉬의 종류
+                # 030001은 썸지 결과 푸쉬
+                "pushType" => "030001",
+                "notification" => {
+                  "_id" => report.id.to_s,
+                  "surveyId" => report.survey_id,
+                  "modelId" => report.model_id,
+                  "version" => report.version,
+                  "requestTime" => report.request_time,
+                  "responseTime" => report.response_time,
+                  "isProcessed" => report.is_processed,
+                  "data" => report.data.map{|x|x.attributes},
+                  "result" => report.result
+                }
+              },
+              # "to" => @@haesung_phone_token
+              "to" => user.fcmToken
+            }
+          end
           puts @body.to_json
           @result = HTTParty.post(
             "https://fcm.googleapis.com/fcm/send",

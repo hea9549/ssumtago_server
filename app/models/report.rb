@@ -9,7 +9,8 @@ class Report
   field :isProcessed, as: :is_processed, type: Boolean
   field :result, type: Array
   # Ssum 모델에 embeded됨
-  embedded_in :ssum
+  # embedded_in :ssum
+  embedded_in :user
   # Ssumji 모델을 embed함
   embeds_many :data, class_name:"Ssumji"
   # surveyId, modelId, version 존재해야함
