@@ -38,7 +38,7 @@ class ReportsController < ApplicationController
       logger.info "[LINE:#{__LINE__}] 해당 user 찾음, 설문지 저장 중..."
       report = Report.new
       report.survey_id = params[:surveyId]
-      report.model_id = params[:modelId]
+      # report.model_id = params[:modelId]
       report.version = params[:version]
       report.requestTime = DateTime.now
       report.is_processed = false
@@ -56,7 +56,8 @@ class ReportsController < ApplicationController
       # ssums.predictReports << report
       @user.predictReports << report
       @user.last_surveyed = DateTime.now
-      if @user.save && params[:surveyId] && params[:modelId] && params[:version]
+      # if @user.save && params[:surveyId] && params[:modelId] && params[:version]
+      if @user.save && params[:surveyId] && params[:version]
         logger.info "[LINE:#{__LINE__}] user에 설문지 저장완료, RabbitMQ로 전송 시작..."
 
         # RabbitMQ로 Q보내기
@@ -69,7 +70,7 @@ class ReportsController < ApplicationController
                            requestTime: report.requestTime,
                            reportId: report.id.to_s,
                            surveyId: report.survey_id,
-                           modelId: report.model_id,
+                          #  modelId: report.model_id,
                            version: report.version,
                            data: params[:data]
                           }
@@ -89,7 +90,8 @@ class ReportsController < ApplicationController
       # user에 설문지 저장 실패시
       else
         logger.error "[LINE:#{__LINE__}] 서버 에러로 설문지 저장 실패 / 통신종료"
-        @error = {msg:"서버 에러로 설문지 저장에 실패했습니다. (surveyId, modelId, version 파라미터가 존재해야함)", code:"500", time:Time.now}
+        # @error = {msg:"서버 에러로 설문지 저장에 실패했습니다. (surveyId, modelId, version 파라미터가 존재해야함)", code:"500", time:Time.now}
+        @error = {msg:"서버 에러로 설문지 저장에 실패했습니다. (surveyId, version 파라미터가 존재해야함)", code:"500", time:Time.now}
         render json: @error, status: :internal_server_error
       end
     # user가 없다면 에러 (jwt 에서 유저를 반환하기 때문에 체크할 필요 없음)
@@ -139,7 +141,7 @@ class ReportsController < ApplicationController
                            requestTime: @report.requestTime,
                            reportId: @report.id.to_s,
                            surveyId: @report.survey_id,
-                           modelId: @report.model_id,
+                          #  modelId: @report.model_id,
                            version: @report.version,
                            data: params[:data]
                           }
@@ -224,7 +226,7 @@ class ReportsController < ApplicationController
                 "data" => {
                   "_id" => report.id.to_s,
                   "surveyId" => report.survey_id,
-                  "modelId" => report.model_id,
+                  # "modelId" => report.model_id,
                   "version" => report.version,
                   "requestTime" => report.request_time,
                   "responseTime" => report.response_time,
@@ -245,7 +247,7 @@ class ReportsController < ApplicationController
                 "notification" => {
                   "_id" => report.id.to_s,
                   "surveyId" => report.survey_id,
-                  "modelId" => report.model_id,
+                  # "modelId" => report.model_id,
                   "version" => report.version,
                   "requestTime" => report.request_time,
                   "responseTime" => report.response_time,
@@ -316,7 +318,7 @@ class ReportsController < ApplicationController
         "data" => {
           "_id" => "1",
           "surveyId" => "1",
-          "modelId" => "1",
+          # "modelId" => "1",
           "version" => "1",
           "requestTime" => "1",
           "responseTime" => "1",
