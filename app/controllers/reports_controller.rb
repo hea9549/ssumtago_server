@@ -240,24 +240,17 @@ class ReportsController < ApplicationController
             }
           elsif params[:deviceType] == "ios"
             @body = {
-              "data" => {
-                # 03yyyy, 푸쉬의 종류
-                # 030001은 썸지 결과 푸쉬
-                "pushType" => "030001",
-                "notification" => {
-                  "_id" => report.id.to_s,
-                  "surveyId" => report.survey_id,
-                  # "modelId" => report.model_id,
-                  "version" => report.version,
-                  "requestTime" => report.request_time,
-                  "responseTime" => report.response_time,
-                  "isProcessed" => report.is_processed,
-                  "data" => report.data.map{|x|x.attributes},
-                  "result" => report.result
+              "aps": {
+                "alert" => "결과가 도착했습니다!",
+                "type" => "result",
+                "data" => {
+                  "pushType" => "030001",
+                  "notification" => {
+                    "_id" => report.id.to_s,
+                    "result" => report.result
+                  }
                 }
-              },
-              # "to" => @@haesung_phone_token
-              "to" => user.fcmToken
+              }
             }
           end
           puts @body.to_json
