@@ -12,8 +12,10 @@ class ReportsController < ApplicationController
   # [GET] /predictReports => 설문지를 불러오는 메서드 (check_jwt 메서드가 선행됨)
   def read_sruvey
     logger.info "[LINE:#{__LINE__}] 해당 user 찾음, 불러올 설문지 찾는 중..."
-    begin @report = @user.ssums.find_by(id:params[:ssumId]).predictReports.find_by(_id:params[:reportId])
-      logger.info "[LINE:#{__LINE__}] 설문지 확인, 설문지 데이터 응답 완료 / 통신종료"
+    # begin @report = @user.ssums.find_by(id:params[:ssumId]).predictReports.find_by(_id:params[:reportId])
+    # begin @report = @user.ssum.predictReports.find_by(_id:params[:reportId])
+    begin @report = @user.predictReports.find_by(_id:params[:reportId])
+        logger.info "[LINE:#{__LINE__}] 설문지 확인, 설문지 데이터 응답 완료 / 통신종료"
 
       # @success = {success:"설문지 응답 완료", report: @report}
       render json: @report, status: :ok
@@ -36,7 +38,7 @@ class ReportsController < ApplicationController
       logger.info "[LINE:#{__LINE__}] 해당 user 찾음, 설문지 저장 중..."
       report = Report.new
       report.survey_id = params[:surveyId]
-      report.model_id = params[:modelId]
+      # report.model_id = params[:modelId]
       report.version = params[:version]
       report.requestTime = DateTime.now
       report.is_processed = false
@@ -48,10 +50,14 @@ class ReportsController < ApplicationController
       end
 
       # user의 해당 ssum에 설문을 저장
-      ssums = @user.ssums.find_by(id: params[:ssumId])
-      ssums.predictReports << report
+      # ssums가 배열에서 단일 객체로 변경
+      # ssums = @user.ssums.find_by(id: params[:ssumId])
+      # ssums = @user.ssum
+      # ssums.predictReports << report
+      @user.predictReports << report
       @user.last_surveyed = DateTime.now
-      if @user.save && params[:surveyId] && params[:modelId] && params[:version]
+      # if @user.save && params[:surveyId] && params[:modelId] && params[:version]
+      if @user.save && params[:surveyId] && params[:version]
         logger.info "[LINE:#{__LINE__}] user에 설문지 저장완료, RabbitMQ로 전송 시작..."
 
         # RabbitMQ로 Q보내기
@@ -64,7 +70,7 @@ class ReportsController < ApplicationController
                            requestTime: report.requestTime,
                            reportId: report.id.to_s,
                            surveyId: report.survey_id,
-                           modelId: report.model_id,
+                          #  modelId: report.model_id,
                            version: report.version,
                            data: params[:data]
                           }
@@ -73,7 +79,7 @@ class ReportsController < ApplicationController
           conn.close
           logger.info "[LINE:#{__LINE__}] RabbitMQ로 전송 완료 / 통신종료"
           # @success = {success:"설문지 저장 완료, 큐 전송에 성공했습니다."}
-          render json: @report, status: :created
+          render json: report, status: :created
         # RabbitMQ 전송 실패시
         rescue Bunny::TCPConnectionFailed
           logger.error "[LINE:#{__LINE__}] RabbitMQ 연결 끊어짐 / 통신종료"
@@ -84,7 +90,8 @@ class ReportsController < ApplicationController
       # user에 설문지 저장 실패시
       else
         logger.error "[LINE:#{__LINE__}] 서버 에러로 설문지 저장 실패 / 통신종료"
-        @error = {msg:"서버 에러로 설문지 저장에 실패했습니다. (surveyId, modelId, version 파라미터가 존재해야함)", code:"500", time:Time.now}
+        # @error = {msg:"서버 에러로 설문지 저장에 실패했습니다. (surveyId, modelId, version 파라미터가 존재해야함)", code:"500", time:Time.now}
+        @error = {msg:"서버 에러로 설문지 저장에 실패했습니다. (surveyId, version 파라미터가 존재해야함)", code:"500", time:Time.now}
         render json: @error, status: :internal_server_error
       end
     # user가 없다면 에러 (jwt 에서 유저를 반환하기 때문에 체크할 필요 없음)
@@ -102,7 +109,9 @@ class ReportsController < ApplicationController
   # [PATCH] /predictReports => 설문지 내용 수정하는 메서드 (check_jwt 메서드가 선행됨)
   def update_survey
     logger.info "[LINE:#{__LINE__}] 해당 user 찾음, 업데이트할 설문지 찾는 중..."
-    begin @report = @user.ssums.find_by(id:params[:ssumId]).predictReports.find_by(_id:params[:reportId])
+    # begin @report = @user.ssums.find_by(id:params[:ssumId]).predictReports.find_by(_id:params[:reportId])
+    # begin @report = @user.ssum.predictReports.find_by(_id:params[:reportId])
+    begin @report = @user.predictReports.find_by(_id:params[:reportId])
       logger.info "[LINE:#{__LINE__}] 설문지 확인, 설문지 업데이트 중..."
       @report.requestTime = DateTime.now
       @report.is_processed = false
@@ -132,7 +141,7 @@ class ReportsController < ApplicationController
                            requestTime: @report.requestTime,
                            reportId: @report.id.to_s,
                            surveyId: @report.survey_id,
-                           modelId: @report.model_id,
+                          #  modelId: @report.model_id,
                            version: @report.version,
                            data: params[:data]
                           }
@@ -168,7 +177,9 @@ class ReportsController < ApplicationController
   # [DELETE] /predictReports => 설문지를 삭제하는 메서드 (check_jwt 메서드가 선행됨)
   def delete_survey
     logger.info "[LINE:#{__LINE__}] 해당 user 찾음, 삭제할 설문지 찾는 중..."
-    begin @report = @user.ssums.find_by(id:params[:ssumId]).predictReports.find_by(_id:params[:reportId])
+    # begin @report = @user.ssums.find_by(id:params[:ssumId]).predictReports.find_by(_id:params[:reportId])
+    # begin @report = @user.ssum.predictReports.find_by(_id:params[:reportId])
+    begin @report = @user.predictReports.find_by(_id:params[:reportId])
       logger.info "[LINE:#{__LINE__}] 설문지 확인, 설문지 삭제 완료 / 통신종료"
       @report.destroy
 
@@ -192,7 +203,8 @@ class ReportsController < ApplicationController
     begin user = User.find(params[:userId])
       logger.info "[LINE:#{__LINE__}] user 찾기 성공, user에 해당 report가 있는지 확인 중..."
       # reportId에 해당하는 predictReports가 있는지 확인
-      begin report = user.ssums.find_by(id:params[:ssumId]).predictReports.find(params[:reportId])
+      # begin report = user.ssums.find_by(id:params[:ssumId]).predictReports.find(params[:reportId])
+      begin report = user.predictReports.find(params[:reportId])
         logger.info "[LINE:#{__LINE__}] report 찾기 성공, 해당 report에 결과 값 저장 중..."
         report.result = params[:predictResults]
         report.is_processed = true
@@ -205,25 +217,49 @@ class ReportsController < ApplicationController
             "Content-Type" => "application/json",
             "Authorization" => @@fcm_auth
           }
-          @body = {
-            "data" => {
-              # 03yyyy, 푸쉬의 종류
-              # 030001은 썸지 결과 푸쉬
-              "pushType" => "030001",
+          if params[:deviceType] == "android"
+            @body = {
               "data" => {
-                "_id" => report.id.to_s,
-                "surveyId" => report.survey_id,
-                "modelId" => report.model_id,
-                "version" => report.version,
-                "requestTime" => report.request_time,
-                "responseTime" => report.response_time,
-                "isProcessed" => report.is_processed,
-                "data" => report.data.map{|x|x.attributes},
-                "result" => report.result
-              }
-            },
-            "to" => @@haesung_phone_token
-          }
+                # 03yyyy, 푸쉬의 종류
+                # 030001은 썸지 결과 푸쉬
+                "pushType" => "030001",
+                "data" => {
+                  "_id" => report.id.to_s,
+                  "surveyId" => report.survey_id,
+                  # "modelId" => report.model_id,
+                  "version" => report.version,
+                  "requestTime" => report.request_time,
+                  "responseTime" => report.response_time,
+                  "isProcessed" => report.is_processed,
+                  "data" => report.data.map{|x|x.attributes},
+                  "result" => report.result
+                }
+              },
+              # "to" => @@haesung_phone_token
+              "to" => user.fcmToken
+            }
+          elsif params[:deviceType] == "ios"
+            @body = {
+              "data" => {
+                # 03yyyy, 푸쉬의 종류
+                # 030001은 썸지 결과 푸쉬
+                "pushType" => "030001",
+                "notification" => {
+                  "_id" => report.id.to_s,
+                  "surveyId" => report.survey_id,
+                  # "modelId" => report.model_id,
+                  "version" => report.version,
+                  "requestTime" => report.request_time,
+                  "responseTime" => report.response_time,
+                  "isProcessed" => report.is_processed,
+                  "data" => report.data.map{|x|x.attributes},
+                  "result" => report.result
+                }
+              },
+              # "to" => @@haesung_phone_token
+              "to" => user.fcmToken
+            }
+          end
           puts @body.to_json
           @result = HTTParty.post(
             "https://fcm.googleapis.com/fcm/send",
@@ -282,7 +318,7 @@ class ReportsController < ApplicationController
         "data" => {
           "_id" => "1",
           "surveyId" => "1",
-          "modelId" => "1",
+          # "modelId" => "1",
           "version" => "1",
           "requestTime" => "1",
           "responseTime" => "1",

@@ -11,16 +11,25 @@ class User
   field :password_digest, type: String
   field :name, type: String
   field :sex, type: String
-  field :age, type: String
+  field :birthday, type: String
   field :joinType, as: :join_type, type: String
   field :fcmToken, as: :fcm_token, type: String
   field :lastSurveyed, as: :last_surveyed, type: DateTime
   # Ssum 모델을 embed함
-  embeds_many :ssums, class_name:"Ssum"
+  # embeds_many :ssums, class_name:"Ssum"
+  # has_one :ssum, class_name:"Ssum"
+  embeds_many :predictReports, class_name:"Report"
   # email, name, joinType이 존재해야함
   validates_presence_of :email
   validates_presence_of :name
   validates_presence_of :joinType
+
+  # _id를 id로 수정
+  def as_json(*args)
+    res = super
+    res["id"] = res.delete("_id").to_s
+    res
+  end
 
   # attr_accessor :email, :name, :sex, :age, :joinType, :fcmToken, :lastSurveyed, :ssums
 
