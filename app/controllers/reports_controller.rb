@@ -210,14 +210,15 @@ class ReportsController < ApplicationController
         report.is_processed = true
         report.response_time = DateTime.now
         if report.save
-          logger.info "[LINE:#{__LINE__}] report에 결과 값 저장 성공, fcm 전송 시작..."
+          logger.info "[LINE:#{__LINE__}] report에 결과 값 저장 성공, 디바이스 확인 중..."
           # report 결과 저장 성공시
           # fcm 시작
-          @headers = {
-            "Content-Type" => "application/json",
-            "Authorization" => @@fcm_auth
-          }
           if params[:deviceType] == "android"
+            logger.info "[LINE:#{__LINE__}] 디바이스 안드로이드 확인, fcm 전송 중..."
+            @headers = {
+              "Content-Type" => "application/json",
+              "Authorization" => @@fcm_auth
+            }
             @body = {
               "data" => {
                 # 03yyyy, 푸쉬의 종류
@@ -239,6 +240,11 @@ class ReportsController < ApplicationController
               "to" => user.fcmToken
             }
           elsif params[:deviceType] == "ios"
+            logger.info "[LINE:#{__LINE__}] 디바이스 IOS 확인, fcm 전송 중..."
+            @headers = {
+              "Content-Type" => "application/json",
+              "Authorization" => @@fcm_auth
+            }
             @body = {
               "notification" => "결과가 도착했습니다! 지금 바로 확인하세요!",
               "data" => {
