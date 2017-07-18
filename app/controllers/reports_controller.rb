@@ -240,17 +240,12 @@ class ReportsController < ApplicationController
             }
           elsif params[:deviceType] == "ios"
             @body = {
-              "aps": {
-                "alert" => "결과가 도착했습니다!",
-                "type" => "result",
-                "data" => {
-                  "pushType" => "030001",
-                  "notification" => {
-                    "_id" => report.id.to_s,
-                    "result" => report.result
-                  }
-                }
-              }
+              "notification" => "결과가 도착했습니다! 지금 바로 확인하세요!",
+              "data" => {
+                "reportId" => report.id.to_s,
+                "result" => report.result
+              },
+              "to" => user.fcmToken
             }
           end
           puts @body.to_json
