@@ -51,6 +51,7 @@ class UsersController < ApplicationController
             @token = JWT.encode @info, @@hmac_secret, 'HS256'
             @userInfo = @user.as_json(:except => [:password_digest,:created_at, :updated_at])
             @userInfo["jwt"] = @token
+            @userInfo["predictReports"] = @user.predictReports
             render json: @userInfo, status: :created
             # @success = {success:"회원가입에 성공했습니다.", jwt: @token, userInfo: @userInfo}
             # render json: @success, status: :created
@@ -78,6 +79,7 @@ class UsersController < ApplicationController
           @token = JWT.encode @info, @@hmac_secret, 'HS256'
           @userInfo = @user.as_json(:except => [:password_digest,:created_at, :updated_at])
           @userInfo["jwt"] = @token
+          @userInfo["predictReports"] = @user.predictReports
           render json: @userInfo, status: :ok
           # @success = {success:"로그인에 성공했습니다.", jwt: @token}
           # render json: @success, status: :ok
