@@ -213,38 +213,38 @@ class ReportsController < ApplicationController
           logger.info "[LINE:#{__LINE__}] report에 결과 값 저장 성공, 디바이스 확인 중..."
           # report 결과 저장 성공시
           # fcm 시작
-          if params[:deviceType] == "android"
-            logger.info "[LINE:#{__LINE__}] 디바이스 안드로이드 확인, fcm 전송 중..."
+          # if params[:deviceType] == "android"
+            # logger.info "[LINE:#{__LINE__}] 디바이스 안드로이드 확인, fcm 전송 중..."
             @headers = {
               "Content-Type" => "application/json",
               "Authorization" => @@fcm_auth
             }
-            @body = {
-              "data" => {
-                # 03yyyy, 푸쉬의 종류
-                # 030001은 썸지 결과 푸쉬
-                "pushType" => "030001",
-                "data" => {
-                  "_id" => report.id.to_s,
-                  "surveyId" => report.survey_id,
-                  # "modelId" => report.model_id,
-                  "version" => report.version,
-                  "requestTime" => report.request_time,
-                  "responseTime" => report.response_time,
-                  "isProcessed" => report.is_processed,
-                  "data" => report.data.map{|x|x.attributes},
-                  "result" => report.result
-                }
-              },
-              # "to" => @@haesung_phone_token
-              "to" => user.fcmToken
-            }
-          elsif params[:deviceType] == "ios"
-            logger.info "[LINE:#{__LINE__}] 디바이스 IOS 확인, fcm 전송 중..."
-            @headers = {
-              "Content-Type" => "application/json",
-              "Authorization" => @@fcm_auth
-            }
+            # @body = {
+            #   "data" => {
+            #     # 03yyyy, 푸쉬의 종류
+            #     # 030001은 썸지 결과 푸쉬
+            #     "pushType" => "030001",
+            #     "data" => {
+            #       "_id" => report.id.to_s,
+            #       "surveyId" => report.survey_id,
+            #       # "modelId" => report.model_id,
+            #       "version" => report.version,
+            #       "requestTime" => report.request_time,
+            #       "responseTime" => report.response_time,
+            #       "isProcessed" => report.is_processed,
+            #       "data" => report.data.map{|x|x.attributes},
+            #       "result" => report.result
+            #     }
+            #   },
+            #   # "to" => @@haesung_phone_token
+            #   "to" => user.fcmToken
+            # }
+          # elsif params[:deviceType] == "ios"
+          #   logger.info "[LINE:#{__LINE__}] 디바이스 IOS 확인, fcm 전송 중..."
+          #   @headers = {
+          #     "Content-Type" => "application/json",
+          #     "Authorization" => @@fcm_auth
+          #   }
             @body = {
               "priority" => "high",
               "notification" => {
@@ -257,7 +257,7 @@ class ReportsController < ApplicationController
               },
               "to" => user.fcmToken
             }
-          end
+          # end
           puts @body.to_json
           @result = HTTParty.post(
             "https://fcm.googleapis.com/fcm/send",
