@@ -38,8 +38,9 @@ Rails.application.routes.draw do
 
   # Reports Controller 설문지 관련 Route
   ## 설문지 요청
+  get 'predictReports' => 'reports#read_surveys'
   # get 'ssums/:ssumId/predictReports/:reportId' => 'reports#read_sruvey'
-  get 'predictReports/:reportId' => 'reports#read_sruvey'
+  get 'predictReports/:reportId' => 'reports#read_survey'
   ## 설문지 만들기
   # post 'ssums/:ssumId/predictReports' => 'reports#create_survey'
   post 'predictReports' => 'reports#create_survey'

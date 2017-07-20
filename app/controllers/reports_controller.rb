@@ -9,8 +9,8 @@ class ReportsController < ApplicationController
   @@fcm_auth = ENV['FCM_AUTHORIZATION']
   @@haesung_phone_token = ENV['HS_TOKEN']
 
-  # [GET] /predictReports => 설문지를 불러오는 메서드 (check_jwt 메서드가 선행됨)
-  def read_sruvey
+  # [GET] /predictReports/:id => 설문지를 불러오는 메서드 (check_jwt 메서드가 선행됨)
+  def read_survey
     logger.info "[LINE:#{__LINE__}] 해당 user 찾음, 불러올 설문지 찾는 중..."
     # begin @report = @user.ssums.find_by(id:params[:ssumId]).predictReports.find_by(_id:params[:reportId])
     # begin @report = @user.ssum.predictReports.find_by(_id:params[:reportId])
@@ -25,6 +25,26 @@ class ReportsController < ApplicationController
     rescue Mongoid::Errors::DocumentNotFound
       logger.error "[LINE:#{__LINE__}] user에 해당 reportId의 설문지를 찾을 수 없음 / 통신종료"
       @error = {msg:"user에 해당 reportId의 설문지를 찾을 수 없습니다.", code:"500", time:Time.now}
+      render json: @error, status: :internal_server_error
+    end
+  end
+
+  # [GET] /predictReports => 설문지를 불러오는 메서드 (check_jwt 메서드가 선행됨)
+  def read_surveys
+    logger.info "[LINE:#{__LINE__}] 해당 user 찾음, 불러올 설문지 찾는 중..."
+    # begin @report = @user.ssums.find_by(id:params[:ssumId]).predictReports.find_by(_id:params[:reportId])
+    # begin @report = @user.ssum.predictReports.find_by(_id:params[:reportId])
+    begin @report = @user.predictReports
+        logger.info "[LINE:#{__LINE__}] 설문지 확인, 설문지 데이터 응답 완료 / 통신종료"
+
+      # @success = {success:"설문지 응답 완료", report: @report}
+      render json: @report, status: :ok
+
+
+    # 설문지를 찾을 수 없을 때
+    rescue Mongoid::Errors::DocumentNotFound
+      logger.error "[LINE:#{__LINE__}] user의 설문지를 찾을 수 없음 / 통신종료"
+      @error = {msg:"user의 설문지를 찾을 수 없습니다.", code:"500", time:Time.now}
       render json: @error, status: :internal_server_error
     end
   end
