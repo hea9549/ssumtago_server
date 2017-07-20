@@ -4,7 +4,7 @@ require "bunny"
 require 'json'
 
 class ReportsController < ApplicationController
-  before_action :check_jwt, only: [:read_sruvey, :create_survey, :update_survey, :delete_survey]
+  before_action :check_jwt, only: [:read_survey, :read_surveys, :create_survey, :update_survey, :delete_survey]
   @@rabbitMQ_secret = ENV['RabbitMQ_pwd']
   @@fcm_auth = ENV['FCM_AUTHORIZATION']
   @@haesung_phone_token = ENV['HS_TOKEN']
