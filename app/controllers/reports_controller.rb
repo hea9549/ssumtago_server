@@ -246,7 +246,11 @@ class ReportsController < ApplicationController
               "Authorization" => @@fcm_auth
             }
             @body = {
-              "notification" => "결과가 도착했습니다! 지금 바로 확인하세요!",
+              "priority" => "high",
+              "notification" => {
+                "body" => "Background Message",
+                "title" => "결과가 도착했습니다! 지금 바로 확인하세요!"
+              },
               "data" => {
                 "reportId" => report.id.to_s,
                 "result" => report.result
