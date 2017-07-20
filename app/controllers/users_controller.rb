@@ -126,6 +126,7 @@ class UsersController < ApplicationController
           # @success = {success:"회원가입에 성공했습니다.", jwt: @token, userInfo: @userInfo}
           @userInfo = @user.as_json(:except => [:password_digest,:created_at, :updated_at])
           @userInfo["jwt"] = @token
+          @userInfo["predictReports"] = @user.predictReports
           render json: @userInfo, status: :created
         else
           logger.error "[LINE:#{__LINE__}] 서버에러로 회원가입 저장 실패 / 통신종료"
@@ -145,6 +146,7 @@ class UsersController < ApplicationController
   def show
     logger.info "[LINE:#{__LINE__}] jwt에 해당하는 user 정보 리턴완료 / 통신종료"
     @userInfo = @user.as_json(:except => [:password_digest,:created_at, :updated_at])
+    @userInfo["predictReports"] = @user.predictReports
     render json: @userInfo, status: :ok
   end
 
@@ -158,6 +160,7 @@ class UsersController < ApplicationController
       end
       logger.info "[LINE:#{__LINE__}] 유저 수정 완료 / 통신종료"
       @userInfo = @user.as_json(:except => [:password_digest,:created_at, :updated_at])
+      @userInfo["predictReports"] = @user.predictReports
       render json: @userInfo, status: :created
     else
       logger.error "[LINE:#{__LINE__}] 서버에러로 저장 실패 / 통신종료"
