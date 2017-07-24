@@ -4,13 +4,13 @@ require "bunny"
 require 'json'
 
 class ReportsController < ApplicationController
-  before_action :check_jwt, only: [:read_sruvey, :create_survey, :update_survey, :delete_survey]
+  before_action :check_jwt, only: [:read_survey, :read_surveys, :create_survey, :update_survey, :delete_survey]
   @@rabbitMQ_secret = ENV['RabbitMQ_pwd']
   @@fcm_auth = ENV['FCM_AUTHORIZATION']
   @@haesung_phone_token = ENV['HS_TOKEN']
 
-  # [GET] /predictReports => 설문지를 불러오는 메서드 (check_jwt 메서드가 선행됨)
-  def read_sruvey
+  # [GET] /predictReports/:id => 설문지를 불러오는 메서드 (check_jwt 메서드가 선행됨)
+  def read_survey
     logger.info "[LINE:#{__LINE__}] 해당 user 찾음, 불러올 설문지 찾는 중..."
     # begin @report = @user.ssums.find_by(id:params[:ssumId]).predictReports.find_by(_id:params[:reportId])
     # begin @report = @user.ssum.predictReports.find_by(_id:params[:reportId])
@@ -25,6 +25,26 @@ class ReportsController < ApplicationController
     rescue Mongoid::Errors::DocumentNotFound
       logger.error "[LINE:#{__LINE__}] user에 해당 reportId의 설문지를 찾을 수 없음 / 통신종료"
       @error = {msg:"user에 해당 reportId의 설문지를 찾을 수 없습니다.", code:"500", time:Time.now}
+      render json: @error, status: :internal_server_error
+    end
+  end
+
+  # [GET] /predictReports => 설문지를 불러오는 메서드 (check_jwt 메서드가 선행됨)
+  def read_surveys
+    logger.info "[LINE:#{__LINE__}] 해당 user 찾음, 불러올 설문지 찾는 중..."
+    # begin @report = @user.ssums.find_by(id:params[:ssumId]).predictReports.find_by(_id:params[:reportId])
+    # begin @report = @user.ssum.predictReports.find_by(_id:params[:reportId])
+    begin @report = @user.predictReports
+        logger.info "[LINE:#{__LINE__}] 설문지 확인, 설문지 데이터 응답 완료 / 통신종료"
+
+      # @success = {success:"설문지 응답 완료", report: @report}
+      render json: @report, status: :ok
+
+
+    # 설문지를 찾을 수 없을 때
+    rescue Mongoid::Errors::DocumentNotFound
+      logger.error "[LINE:#{__LINE__}] user의 설문지를 찾을 수 없음 / 통신종료"
+      @error = {msg:"user의 설문지를 찾을 수 없습니다.", code:"500", time:Time.now}
       render json: @error, status: :internal_server_error
     end
   end
@@ -210,56 +230,54 @@ class ReportsController < ApplicationController
         report.is_processed = true
         report.response_time = DateTime.now
         if report.save
-          logger.info "[LINE:#{__LINE__}] report에 결과 값 저장 성공, fcm 전송 시작..."
+          logger.info "[LINE:#{__LINE__}] report에 결과 값 저장 성공, 디바이스 확인 중..."
           # report 결과 저장 성공시
           # fcm 시작
-          @headers = {
-            "Content-Type" => "application/json",
-            "Authorization" => @@fcm_auth
-          }
-          if params[:deviceType] == "android"
+          # if params[:deviceType] == "android"
+            # logger.info "[LINE:#{__LINE__}] 디바이스 안드로이드 확인, fcm 전송 중..."
+            @headers = {
+              "Content-Type" => "application/json",
+              "Authorization" => @@fcm_auth
+            }
+            # @body = {
+            #   "data" => {
+            #     # 03yyyy, 푸쉬의 종류
+            #     # 030001은 썸지 결과 푸쉬
+            #     "pushType" => "030001",
+            #     "data" => {
+            #       "_id" => report.id.to_s,
+            #       "surveyId" => report.survey_id,
+            #       # "modelId" => report.model_id,
+            #       "version" => report.version,
+            #       "requestTime" => report.request_time,
+            #       "responseTime" => report.response_time,
+            #       "isProcessed" => report.is_processed,
+            #       "data" => report.data.map{|x|x.attributes},
+            #       "result" => report.result
+            #     }
+            #   },
+            #   # "to" => @@haesung_phone_token
+            #   "to" => user.fcmToken
+            # }
+          # elsif params[:deviceType] == "ios"
+          #   logger.info "[LINE:#{__LINE__}] 디바이스 IOS 확인, fcm 전송 중..."
+          #   @headers = {
+          #     "Content-Type" => "application/json",
+          #     "Authorization" => @@fcm_auth
+          #   }
             @body = {
-              "data" => {
-                # 03yyyy, 푸쉬의 종류
-                # 030001은 썸지 결과 푸쉬
-                "pushType" => "030001",
-                "data" => {
-                  "_id" => report.id.to_s,
-                  "surveyId" => report.survey_id,
-                  # "modelId" => report.model_id,
-                  "version" => report.version,
-                  "requestTime" => report.request_time,
-                  "responseTime" => report.response_time,
-                  "isProcessed" => report.is_processed,
-                  "data" => report.data.map{|x|x.attributes},
-                  "result" => report.result
-                }
+              "priority" => "high",
+              "notification" => {
+                "body" => "Background Message",
+                "title" => "결과가 도착했습니다! 지금 바로 확인하세요!"
               },
-              # "to" => @@haesung_phone_token
+              "data" => {
+                "reportId" => report.id.to_s,
+                "result" => report.result
+              },
               "to" => user.fcmToken
             }
-          elsif params[:deviceType] == "ios"
-            @body = {
-              "data" => {
-                # 03yyyy, 푸쉬의 종류
-                # 030001은 썸지 결과 푸쉬
-                "pushType" => "030001",
-                "notification" => {
-                  "_id" => report.id.to_s,
-                  "surveyId" => report.survey_id,
-                  # "modelId" => report.model_id,
-                  "version" => report.version,
-                  "requestTime" => report.request_time,
-                  "responseTime" => report.response_time,
-                  "isProcessed" => report.is_processed,
-                  "data" => report.data.map{|x|x.attributes},
-                  "result" => report.result
-                }
-              },
-              # "to" => @@haesung_phone_token
-              "to" => user.fcmToken
-            }
-          end
+          # end
           puts @body.to_json
           @result = HTTParty.post(
             "https://fcm.googleapis.com/fcm/send",
