@@ -13,6 +13,8 @@ Rails.application.routes.draw do
   post 'sessions' => 'users#login'
   ## 유저 fcm업데이트
   # patch 'users/:userId' =>'users#fcm_update'
+  ## 페이스북 로그인 확인
+  post 'facebook' => 'users#facebookCheck'
 
   # Surveys Controller 설문내용 관련 Route
   get 'surveys' => 'surveys#index'
