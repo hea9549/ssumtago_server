@@ -49,7 +49,7 @@ class ApplicationController < ActionController::API
       # request Header에 jwt가 없을시
       else
         logger.error "[LINE:#{__LINE__}] 헤더에 jwt가 없음 / 통신 종료"
-        @error = {msg: "Header에 Token 값을 넣어주세요!", code:"400", time:Time.now}
+        @error = {msg: "Header에 Token 값을 넣어주세요!", code:"401", time:Time.now}
         render json: @error, status: :bad_request
       end
     end

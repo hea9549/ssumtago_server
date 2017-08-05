@@ -75,6 +75,7 @@ class ReportsController < ApplicationController
       # ssums = @user.ssum
       # ssums.predictReports << report
       @user.predictReports << report
+      @user.has_surveyed = true
       @user.last_surveyed = DateTime.now
       # if @user.save && params[:surveyId] && params[:modelId] && params[:version]
       if @user.save && params[:surveyId] && params[:version]

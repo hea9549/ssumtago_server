@@ -234,8 +234,11 @@ class UsersController < ApplicationController
       @user.fcmToken = params[:fcmToken]
       if @user.save
         logger.info "[LINE:#{__LINE__}] user의 fcmToken 업데이트 완료 / 통신 종료"
-        @success = {success:"#{@user.name}님의 fcmToken 업데이트를 완료했습니다."}
-        render json: @success, status: :ok
+        @userInfo = @user.as_json(:except => [:password_digest,:created_at, :updated_at])
+        @userInfo["predictReports"] = @user.predictReports
+        render json: @userInfo, status: :ok
+        # @success = {success:"#{@user.name}님의 fcmToken 업데이트를 완료했습니다."}
+        # render json: @success, status: :ok
       else
         logger.error "[LINE:#{__LINE__}] 서버 에러로 업데이트 실패 / 통신 종료"
         @error = {msg:"서버 에러로 저장이 실패했습니다.", code:"500", time:Time.now}

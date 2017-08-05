@@ -64,6 +64,7 @@ class SurveysController < ApplicationController
         :version,
         :surveyId,
         :desc,
+        :isAvailable,
         :excludeCodes => [],
         :parameters => [
           :feature_num,

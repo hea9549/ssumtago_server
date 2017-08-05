@@ -12,7 +12,7 @@ Rails.application.routes.draw do
   ## 로그인
   post 'sessions' => 'users#login'
   ## 유저 fcm업데이트
-  # patch 'users/:userId' =>'users#fcm_update'
+  patch 'fcm' =>'users#fcm_update'
   ## 페이스북 로그인 확인
   post 'facebook' => 'users#facebookCheck'
 
