@@ -170,7 +170,11 @@ class UsersController < ApplicationController
       # 페이스북으로 가입된 유저일시
       if @user.persisted?
         logger.info "[LINE:#{__LINE__}] 기존 회원 확인 / 통신종료"
-        @userInfo = @user.as_json(:except => [:password_digest, :created_at, :updated_at])
+        @info = {email: @user["email"], role:["user"], creator: "API server", expireTime: Time.now + 24.hours}
+        @token = JWT.encode @info, @@hmac_secret, 'HS256'
+        @userInfo = @user.as_json(:except => [:password_digest,:created_at, :updated_at])
+        @userInfo["jwt"] = @token
+        @userInfo["predictReports"] = @user.predictReports
         render json: @userInfo, status: :ok
       # 페이스북 신규 회원일때
       else
