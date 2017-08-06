@@ -14,7 +14,8 @@ Rails.application.routes.draw do
   ## 유저 fcm업데이트
   patch 'fcm' =>'users#fcm_update'
   ## 페이스북 로그인 확인
-  post 'facebook' => 'users#facebookCheck'
+  # post 'facebook' => 'users#facebookCheck'
+  # get 'facebook' => 'users#facebookCheck'
 
   # Surveys Controller 설문내용 관련 Route
   get 'surveys' => 'surveys#index'

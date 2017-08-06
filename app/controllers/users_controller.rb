@@ -163,7 +163,7 @@ class UsersController < ApplicationController
   # [POST] /facebook => 페이스북 로그인시 가입된 회원인지 아닌지 확인하는 메서드
   def facebookCheck
     logger.info "[LINE:#{__LINE__}] 페이스북 토큰값 확인 중..."
-    @fb_user = CheckFbToken.new(params[:password])
+    @fb_user = CheckFbToken.new(params[:token])
     # 페이스북 토큰이 맞는지 인증
     begin @fb_info = @fb_user.verify
       @user = User.where(joinType: "facebook").find_or_initialize_by(email:@fb_info[:email])
@@ -190,12 +190,18 @@ class UsersController < ApplicationController
     end
   end
 
-  # [GET] /users/:userId => 유저 조회하는 메서드
+  # [GET] /users => 유저 조회하는 메서드
   def show
-    logger.info "[LINE:#{__LINE__}] jwt에 해당하는 user 정보 리턴완료 / 통신종료"
-    @userInfo = @user.as_json(:except => [:password_digest,:created_at, :updated_at])
-    @userInfo["predictReports"] = @user.predictReports
-    render json: @userInfo, status: :ok
+    # 페이스북 토큰 조회
+    if params[:token]
+      facebookCheck
+    # token이 없다면, 즉, 일반 유저 조회라면
+    else
+      logger.info "[LINE:#{__LINE__}] jwt에 해당하는 user 정보 리턴완료 / 통신종료"
+      @userInfo = @user.as_json(:except => [:password_digest,:created_at, :updated_at])
+      @userInfo["predictReports"] = @user.predictReports
+      render json: @userInfo, status: :ok
+    end
   end
 
   # [PATCH] /users/:userId => 유저를 수정하는 멧서드
