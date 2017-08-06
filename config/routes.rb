@@ -56,4 +56,8 @@ Rails.application.routes.draw do
 
   ## 결과값 요청
   post 'predictResults/:reportId' => 'reports#result'
+
+  # PreviousReport Controller 설문지 관련 Route
+  ## 설문지 만들기
+  post 'previousReports' => 'previous_reports#create'
 end

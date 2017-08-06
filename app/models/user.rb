@@ -15,7 +15,7 @@ class User
   field :joinType, as: :join_type, type: String
   field :fcmToken, as: :fcm_token, type: String
   field :lastSurveyed, as: :last_surveyed, type: DateTime
-  field :hasSurveyed, as: :has_surveyed, type: Boolean, default: false
+  field :surveyedYN, as: :surveyed_yn, type: Boolean, default: false
   # Ssum 모델을 embed함
   # embeds_many :ssums, class_name:"Ssum"
   # has_one :ssum, class_name:"Ssum"

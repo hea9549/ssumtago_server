@@ -53,78 +53,89 @@ class ReportsController < ApplicationController
   # [POST] /predictReports => 클라이언트로 부터 설문지 값을 받는 메서드 (check_jwt 메서드가 선행됨)
   def create_survey
 
-    # logger.info "[LINE:#{__LINE__}] 해당 user를 찾는 중..."
-    # begin user = User.find(@user.id)
-      logger.info "[LINE:#{__LINE__}] 해당 user 찾음, 설문지 저장 중..."
-      report = Report.new
-      report.survey_id = params[:surveyId]
-      # report.model_id = params[:modelId]
-      report.version = params[:version]
-      report.requestTime = DateTime.now
-      report.is_processed = false
-      params[:data].each do |data|
-        ssumji = Ssumji.new
-        ssumji.questionCode = data[:questionCode]
-        ssumji.answerCode = data[:answerCode]
-        report.data << ssumji
-      end
+    logger.info "[LINE:#{__LINE__}] 해당 user 찾음, 설문지 한지 24시간 지났는지 확인 중..."
+    # 24시간 안지났을시 (새로운 설문지 불가능)
+    if @user.last_surveyed && @user.last_surveyed > DateTime.now - 24.hours
+        logger.error "[LINE:#{__LINE__}] 설문지 한지 24시간 안지남 / 통신 종료"
+        @error = {msg:"지난 설문지를 한지 24시간이 지나지 않았습니다.", code:"400", time:Time.now}
+        render json: @error, status: :bad_request
 
-      # user의 해당 ssum에 설문을 저장
-      # ssums가 배열에서 단일 객체로 변경
-      # ssums = @user.ssums.find_by(id: params[:ssumId])
-      # ssums = @user.ssum
-      # ssums.predictReports << report
-      @user.predictReports << report
-      @user.has_surveyed = true
-      @user.last_surveyed = DateTime.now
-      # if @user.save && params[:surveyId] && params[:modelId] && params[:version]
-      if @user.save && params[:surveyId] && params[:version]
-        logger.info "[LINE:#{__LINE__}] user에 설문지 저장완료, RabbitMQ로 전송 시작..."
+    # 24시간 지났을시 (새로운 설문지 가능)
+    else
 
-        # RabbitMQ로 Q보내기
-        begin
-          conn = Bunny.new(:host => "expirit.co.kr", :vhost => "pushHost", :user => "ssumtago", password: @@rabbitMQ_secret)
-          conn.start
-          ch   = conn.create_channel
-          q    = ch.queue("ssumPredict")
-          requestSurvey = {userId: @user.id.to_s,
-                           requestTime: report.requestTime,
-                           reportId: report.id.to_s,
-                           surveyId: report.survey_id,
-                          #  modelId: report.model_id,
-                           version: report.version,
-                           data: params[:data]
-                          }
-          ch.default_exchange.publish( requestSurvey.to_json, :routing_key => q.name )
-          puts " [x] Sent #{requestSurvey.to_json}"
-          conn.close
-          logger.info "[LINE:#{__LINE__}] RabbitMQ로 전송 완료 / 통신종료"
-          # @success = {success:"설문지 저장 완료, 큐 전송에 성공했습니다."}
-          render json: report, status: :created
-        # RabbitMQ 전송 실패시
-        rescue Bunny::TCPConnectionFailed
-          logger.error "[LINE:#{__LINE__}] RabbitMQ 연결 끊어짐 / 통신종료"
-          @error = {msg:"서버 에러로 RabbitMQ와의 연결에 실패했습니다.", code:"500", time:Time.now}
-          render json: @error, status: :internal_server_error
+      # logger.info "[LINE:#{__LINE__}] 해당 user를 찾는 중..."
+      # begin user = User.find(@user.id)
+        logger.info "[LINE:#{__LINE__}] 설문지 한지 24시간 지남, 새로운 설문지 저장 중..."
+        report = Report.new
+        report.survey_id = params[:surveyId]
+        # report.model_id = params[:modelId]
+        report.version = params[:version]
+        report.requestTime = DateTime.now
+        report.is_processed = false
+        params[:data].each do |data|
+          ssumji = Ssumji.new
+          ssumji.questionCode = data[:questionCode]
+          ssumji.answerCode = data[:answerCode]
+          report.data << ssumji
         end
 
-      # user에 설문지 저장 실패시
-      else
-        logger.error "[LINE:#{__LINE__}] 서버 에러로 설문지 저장 실패 / 통신종료"
-        # @error = {msg:"서버 에러로 설문지 저장에 실패했습니다. (surveyId, modelId, version 파라미터가 존재해야함)", code:"500", time:Time.now}
-        @error = {msg:"서버 에러로 설문지 저장에 실패했습니다. (surveyId, version 파라미터가 존재해야함)", code:"500", time:Time.now}
-        render json: @error, status: :internal_server_error
-      end
-    # user가 없다면 에러 (jwt 에서 유저를 반환하기 때문에 체크할 필요 없음)
-    # rescue Mongoid::Errors::DocumentNotFound
-    #   logger.error "[LINE:#{__LINE__}] userId에 해당하는 user가 없음 / 통신종료"
-    #   @error = {msg: "올바른 userId 값을 넣어주세요.", code:"400", time:Time.now}
-    #   render json: @error, status: :bad_request
-    # rescue Mongoid::Errors::InvalidFind
-    #   logger.error "[LINE:#{__LINE__}] request body에 userId가 없음 / 통신종료"
-    #   @error = {msg: "body에 userId 값을 넣어주세요.", code:"400", time:Time.now}
-    #   render json: @error, status: :bad_request
-    # end
+        # user의 해당 ssum에 설문을 저장
+        # ssums가 배열에서 단일 객체로 변경
+        # ssums = @user.ssums.find_by(id: params[:ssumId])
+        # ssums = @user.ssum
+        # ssums.predictReports << report
+        @user.predictReports << report
+        @user.last_surveyed = DateTime.now
+        # if @user.save && params[:surveyId] && params[:modelId] && params[:version]
+        if @user.save && params[:surveyId] && params[:version]
+          logger.info "[LINE:#{__LINE__}] user에 설문지 저장완료, RabbitMQ로 전송 시작..."
+
+          # RabbitMQ로 Q보내기
+          begin
+            conn = Bunny.new(:host => "expirit.co.kr", :vhost => "pushHost", :user => "ssumtago", password: @@rabbitMQ_secret)
+            conn.start
+            ch   = conn.create_channel
+            q    = ch.queue("ssumPredict")
+            requestSurvey = {userId: @user.id.to_s,
+                             requestTime: report.requestTime,
+                             reportId: report.id.to_s,
+                             surveyId: report.survey_id,
+                            #  modelId: report.model_id,
+                             version: report.version,
+                             data: params[:data]
+                            }
+            ch.default_exchange.publish( requestSurvey.to_json, :routing_key => q.name )
+            puts " [x] Sent #{requestSurvey.to_json}"
+            conn.close
+            logger.info "[LINE:#{__LINE__}] RabbitMQ로 전송 완료 / 통신종료"
+            # @success = {success:"설문지 저장 완료, 큐 전송에 성공했습니다."}
+            render json: report, status: :created
+          # RabbitMQ 전송 실패시
+          rescue Bunny::TCPConnectionFailed
+            logger.error "[LINE:#{__LINE__}] RabbitMQ 연결 끊어짐 / 통신종료"
+            @error = {msg:"서버 에러로 RabbitMQ와의 연결에 실패했습니다.", code:"500", time:Time.now}
+            render json: @error, status: :internal_server_error
+          end
+
+        # user에 설문지 저장 실패시
+        else
+          logger.error "[LINE:#{__LINE__}] 서버 에러로 설문지 저장 실패 / 통신종료"
+          # @error = {msg:"서버 에러로 설문지 저장에 실패했습니다. (surveyId, modelId, version 파라미터가 존재해야함)", code:"500", time:Time.now}
+          @error = {msg:"서버 에러로 설문지 저장에 실패했습니다. (surveyId, version 파라미터가 존재해야함)", code:"500", time:Time.now}
+          render json: @error, status: :internal_server_error
+        end
+      # user가 없다면 에러 (jwt 에서 유저를 반환하기 때문에 체크할 필요 없음)
+      # rescue Mongoid::Errors::DocumentNotFound
+      #   logger.error "[LINE:#{__LINE__}] userId에 해당하는 user가 없음 / 통신종료"
+      #   @error = {msg: "올바른 userId 값을 넣어주세요.", code:"400", time:Time.now}
+      #   render json: @error, status: :bad_request
+      # rescue Mongoid::Errors::InvalidFind
+      #   logger.error "[LINE:#{__LINE__}] request body에 userId가 없음 / 통신종료"
+      #   @error = {msg: "body에 userId 값을 넣어주세요.", code:"400", time:Time.now}
+      #   render json: @error, status: :bad_request
+      # end
+
+    end
   end
 
   # [PATCH] /predictReports => 설문지 내용 수정하는 메서드 (check_jwt 메서드가 선행됨)
