@@ -55,10 +55,10 @@ class ReportsController < ApplicationController
 
     logger.info "[LINE:#{__LINE__}] 해당 user 찾음, 설문지 한지 24시간 지났는지 확인 중..."
     # 24시간 안지났을시 (새로운 설문지 불가능)
-    if @user.last_surveyed && @user.last_surveyed > DateTime.now - 24.hours
+    if (@user.last_surveyed && @user.last_surveyed > DateTime.now - 24.hours) || @user.surveyedYN == 'N'
         logger.error "[LINE:#{__LINE__}] 설문지 한지 24시간 안지남 / 통신 종료"
         @error = {msg:"지난 설문지를 한지 24시간이 지나지 않았습니다.", code:"400", time:Time.now}
-        render json: @error, status: :bad_request
+        render json: @error, status: :method_not_allowed
 
     # 24시간 지났을시 (새로운 설문지 가능)
     else
