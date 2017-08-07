@@ -9,7 +9,7 @@ class Survey
   field :version, type: String
   field :surveyId, type: Integer
   field :desc, type: String
-  field :isAvailable, as: :is_available, type: Boolean
+  field :isAvailable, as: :is_available, type: String
   field :parameters, type: Object, default: {}
 
   # _id를 id로 수정
