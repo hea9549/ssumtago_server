@@ -19,6 +19,8 @@ class PreviousReportsController < ApplicationController
     logger.info "[LINE:#{__LINE__}] 해당 user 찾음, 설문지 저장 중..."
     @previous_report = PreviousReport.new
     @previous_report.survey_id2 = params[:surveyId2]
+    @previous_report.start_time = params[:startTime]
+    @previous_report.end_time = params[:endTime]
     @previous_report.request_time = DateTime.now
     @previous_report.user_id = @user.id
     params[:data].each do |data|

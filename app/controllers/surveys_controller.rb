@@ -53,7 +53,7 @@ class SurveysController < ApplicationController
     # Use callbacks to share common setup or constraints between actions.
     def set_survey
       logger.info "[LINE:#{__LINE__}] 특정 서베이를 찾는 중..."
-      @survey = Survey.find(params[:surveyId])
+      @survey = Survey.find_by(surveyId:params[:surveyId])
     end
 
     # Only allow a trusted parameter "white list" through.

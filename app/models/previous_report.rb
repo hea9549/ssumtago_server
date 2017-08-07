@@ -4,6 +4,8 @@ class PreviousReport
   field :surveyId2, as: :survey_id2, type: Integer
   field :requestTime, as: :request_time, type: DateTime
   field :userId, as: :user_id, type: String
+  field :startTime, as: :start_time, type: DateTime
+  field :endTime, as: :end_time, type: DateTime
   embeds_many :data, class_name:"Ssumji"
 
   # _id를 id로 수정
