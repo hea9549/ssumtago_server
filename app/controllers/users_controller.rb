@@ -6,7 +6,6 @@ logger.formatter = Logger::Formatter.new
 
 
 class UsersController < ApplicationController
-  # before_action :check_jwt, only:[:show, :update, :delete, :fcm_update]
   before_action :check_jwt, only:[:update, :delete, :fcm_update]
   @@hmac_secret = ENV['HAMC_SECRET']
 
