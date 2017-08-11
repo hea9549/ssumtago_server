@@ -197,6 +197,7 @@ class UsersController < ApplicationController
       facebookCheck
     # token이 없다면, 즉, 일반 유저 조회라면
     else
+      check_jwt
       logger.info "[LINE:#{__LINE__}] jwt에 해당하는 user 정보 리턴완료 / 통신종료"
       @userInfo = @user.as_json(:except => [:password_digest,:created_at, :updated_at])
       @userInfo["predictReports"] = @user.predictReports
