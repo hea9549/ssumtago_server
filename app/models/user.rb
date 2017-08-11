@@ -10,6 +10,7 @@ class User
   field :email, type: String
   field :password_digest, type: String
   field :name, type: String
+  field :role, type: String
   field :sex, type: String
   field :birthday, type: String
   field :joinType, as: :join_type, type: String
