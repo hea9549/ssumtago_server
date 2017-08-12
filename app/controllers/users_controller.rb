@@ -263,7 +263,7 @@ class UsersController < ApplicationController
 
     # 명시된 key값으로 날라오는 parameter들만 받는 메서드 (white list)
     def user_params
-      params.permit(:email, :password, :joinType, :name, :role, :sex, :birthday, :fcmToken)
+      params.permit(:email, :password, :joinType, :name, :sex, :birthday, :fcmToken)
       # params.require(:user).permit(:email, :password, :joinType, :name, :sex, :age, :fcmToken)
     end
 
