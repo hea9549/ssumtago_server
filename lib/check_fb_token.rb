@@ -10,7 +10,7 @@ class CheckFbToken
   def verify
     graph = Koala::Facebook::API.new(@oauth_access_token)
     info = graph.get_object('me', fields:'id, verified, name')
-    info_hash = {email: info["id"], valid: info["verified"], name: info["name"]}
+    info_hash = {id: info["id"], valid: info["verified"], name: info["name"]}
     # email / valid 값이 담긴 해쉬를 return
     return info_hash
   end
