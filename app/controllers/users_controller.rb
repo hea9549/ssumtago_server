@@ -166,7 +166,7 @@ class UsersController < ApplicationController
     @fb_user = CheckFbToken.new(params[:token])
     # 페이스북 토큰이 맞는지 인증
     begin @fb_info = @fb_user.verify
-      logger.info @fb_inf
+      logger.info @fb_info
       logger.info @fb_info[:id]
       @user = User.where(joinType: "facebook").find_or_initialize_by(email:@fb_info[:id])
       # 페이스북으로 가입된 유저일시
