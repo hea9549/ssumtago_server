@@ -117,7 +117,7 @@ class UsersController < ApplicationController
       # 페이스북 토큰이 맞는지 인증
       begin @fb_info = @fb_user.verify
         logger.info "[LINE:#{__LINE__}] 페이스북 토큰값 확인 완료, 이미 가입된 회원인지 확인 중..."
-        @user = User.where(joinType: "facebook").find_or_initialize_by(email:params[:id])
+        @user = User.where(joinType: "facebook").find_or_initialize_by(email:params[:email])
         # 페이스북으로 가입된 유저일시
         if @user.persisted?
           logger.error "[LINE:#{__LINE__}] email값 중복 / 통신종료"
