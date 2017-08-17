@@ -60,4 +60,6 @@ Rails.application.routes.draw do
   # PreviousReport Controller 설문지 관련 Route
   ## 설문지 만들기
   post 'previousReports' => 'previous_reports#create'
+
+  get 'versions' => 'versions#versionsCheck'
 end
