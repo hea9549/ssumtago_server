@@ -10,11 +10,13 @@ class User
   field :email, type: String
   field :password_digest, type: String
   field :name, type: String
+  field :role, type: String, default: "user"
   field :sex, type: String
   field :birthday, type: String
   field :joinType, as: :join_type, type: String
   field :fcmToken, as: :fcm_token, type: String
   field :lastSurveyed, as: :last_surveyed, type: DateTime
+  field :surveyedYN, as: :surveyed_yn, type: Boolean, default: false
   # Ssum 모델을 embed함
   # embeds_many :ssums, class_name:"Ssum"
   # has_one :ssum, class_name:"Ssum"

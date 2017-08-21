@@ -12,7 +12,10 @@ Rails.application.routes.draw do
   ## 로그인
   post 'sessions' => 'users#login'
   ## 유저 fcm업데이트
-  # patch 'users/:userId' =>'users#fcm_update'
+  patch 'fcm' =>'users#fcm_update'
+  ## 페이스북 로그인 확인
+  # post 'facebook' => 'users#facebookCheck'
+  # get 'facebook' => 'users#facebookCheck'
 
   # Surveys Controller 설문내용 관련 Route
   get 'surveys' => 'surveys#index'
@@ -38,8 +41,9 @@ Rails.application.routes.draw do
 
   # Reports Controller 설문지 관련 Route
   ## 설문지 요청
+  get 'predictReports' => 'reports#read_surveys'
   # get 'ssums/:ssumId/predictReports/:reportId' => 'reports#read_sruvey'
-  get 'predictReports/:reportId' => 'reports#read_sruvey'
+  get 'predictReports/:reportId' => 'reports#read_survey'
   ## 설문지 만들기
   # post 'ssums/:ssumId/predictReports' => 'reports#create_survey'
   post 'predictReports' => 'reports#create_survey'
@@ -52,4 +56,8 @@ Rails.application.routes.draw do
 
   ## 결과값 요청
   post 'predictResults/:reportId' => 'reports#result'
+
+  # PreviousReport Controller 설문지 관련 Route
+  ## 설문지 만들기
+  post 'previousReports' => 'previous_reports#create'
 end

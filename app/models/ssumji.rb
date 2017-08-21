@@ -7,4 +7,5 @@ class Ssumji
   field :answerCode, as: :answer_code, type: String
   # Report 모델에 embeded됨
   embedded_in :report
+  embedded_in :previousReport
 end
