@@ -75,4 +75,10 @@ Rails.application.configure do
 
   # Do not dump schema after migrations.
   config.active_record.dump_schema_after_migration = false
+
+  config.x.android_app_version = '1.0.0'
+  config.x.ios_app_version = '1.2.1'
+  config.x.server_app_version = '2.0.0'
+  config.x.db_version = '1.0.0'
+
 end

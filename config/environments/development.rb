@@ -47,5 +47,12 @@ Rails.application.configure do
 
   # 디버깅 정보 제공 형식
   # :default는 api 형식
-  # config.debug_exception_response_format = :default
+  # config.debug_exception_response_format = :defaultconfig.ios_app_version = '1.2.1'
+
+  config.x.android_app_version = '1.0.0'
+  config.x.ios_app_version = '1.2.1'
+  config.x.server_app_version = '2.0.0'
+  config.x.db_version = '1.0.0'
+
+
 end
