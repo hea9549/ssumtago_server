@@ -24,8 +24,4 @@ class Report
     res["id"] = res.delete("_id").to_s
     res
   end
-  
-  def to_json
-    as_json(except: :_id).merge(id: id.to_s).to_json
-  end
 end
