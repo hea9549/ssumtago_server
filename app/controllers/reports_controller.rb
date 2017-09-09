@@ -279,15 +279,28 @@ class ReportsController < ApplicationController
           #     "Content-Type" => "application/json",
           #     "Authorization" => @@fcm_auth
           #   }
+            # 20170909 아래 부분 주석화 
+            # @body = {
+            #   "priority" => "high",
+            #   "notification" => {
+            #     "body" => "Background Message",
+            #     "title" => "결과가 도착했습니다! 지금 바로 확인하세요!"
+            #   },
+            #   "data" => {
+            #     "reportId" => report.id.to_s,
+            #     "result" => report.result
+            #   },
+            #   "to" => user.fcmToken
+            # }
+            # 20170909 대체
             @body = {
               "priority" => "high",
-              "notification" => {
-                "body" => "Background Message",
-                "title" => "결과가 도착했습니다! 지금 바로 확인하세요!"
-              },
               "data" => {
-                "reportId" => report.id.to_s,
-                "result" => report.result
+                "code":"200",
+                "body":{
+                  "reportId" => report.id.to_s,
+                  "results" => report.result
+                }
               },
               "to" => user.fcmToken
             }
