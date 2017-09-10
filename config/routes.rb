@@ -22,7 +22,7 @@ Rails.application.routes.draw do
   get 'surveys/:surveyId' => 'surveys#show'
   post 'surveys' => 'surveys#create'
   patch 'surveys/:surveyId' => 'surveys#update'
-  delete 'surveys/:surveyId' => 'surveys#delete'
+  # delete 'surveys/:surveyId' => 'surveys#delete'
 
 
   # Ssums Controller 썸 관련 Route
