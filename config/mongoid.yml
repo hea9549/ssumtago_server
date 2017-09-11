@@ -161,7 +161,7 @@ test:
 production:
   clients:
     default:
-      database: ssumtago
+      database: ssumtago_test
       hosts:
         - expirit.co.kr:27017
       options:
