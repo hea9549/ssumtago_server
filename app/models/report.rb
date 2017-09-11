@@ -7,12 +7,13 @@ class Report
   field :requestTime, as: :request_time, type: DateTime
   field :responseTime, as: :response_time, type: DateTime
   field :isProcessed, as: :is_processed, type: Boolean
-  field :result, type: Array
+  field :results, type: Array
   # Ssum 모델에 embeded됨
   # embedded_in :ssum
   embedded_in :user
   # Ssumji 모델을 embed함
   embeds_many :data, class_name:"Ssumji"
+  # embeds_many :results, class_name:"Result"
   # surveyId, modelId, version 존재해야함
   # validates_presence_of :surveyId
   # validates_presence_of :modelId
