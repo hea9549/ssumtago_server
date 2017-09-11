@@ -57,7 +57,7 @@ Rails.application.routes.draw do
   ## 결과값 요청
   post 'predictResults/:reportId' => 'reports#result'
   ## 알림 보내기
-  post 'notify' => 'reports#notify'
+  post 'notification' => 'notices#notify'
 
   # PreviousReport Controller 설문지 관련 Route
   ## 설문지 만들기
