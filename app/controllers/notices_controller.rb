@@ -6,7 +6,7 @@ class NoticesController < ApplicationController
   @@RabbitMQ_Queue = ENV['RabbitMQ_Queue']
 
 
-  # [POST] /notification => 공지사항 보내기
+  # [POST] /notifications => 공지사항 보내기
   def notify
     logger.info "[LINE:#{__LINE__}] 해당 user 찾음, user가 admin 인지 확인 중..."
     # 해당 user가 admin인지 확인 중...
