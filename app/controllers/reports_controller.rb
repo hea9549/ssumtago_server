@@ -306,6 +306,7 @@ class ReportsController < ApplicationController
             # 20170909 대체
             @body = {
               "priority" => "high",
+              "content_available" => true,
               "data" => {
                 "code":"200",
                 "body":{
