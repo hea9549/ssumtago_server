@@ -1,13 +1,13 @@
 class NoticesController < ApplicationController
-  before_action :check_jwt, only: [:notify_one]
+  before_action :check_jwt, only: [:notify]
   @@rabbitMQ_secret = ENV['RabbitMQ_pwd']
   @@fcm_auth = ENV['FCM_AUTHORIZATION']
   @@haesung_phone_token = ENV['HS_TOKEN']
   @@RabbitMQ_Queue = ENV['RabbitMQ_Queue']
 
 
-  # [POST] /notifications/ => 공지사항 보내기
-  def notify_one
+  # [POST] /notifications => 공지사항 보내기
+  def notify
     logger.info "[LINE:#{__LINE__}] 해당 user 찾음,  user가 admin 인지 확인 중..."
     # 해당 user가 admin인지 확인 중...
     if @user.role == "admin"
