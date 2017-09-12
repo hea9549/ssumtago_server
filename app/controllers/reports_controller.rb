@@ -171,7 +171,7 @@ class ReportsController < ApplicationController
           conn = Bunny.new(:host => "expirit.co.kr", :vhost => "pushHost", :user => "ssumtago", password: @@rabbitMQ_secret)
           conn.start
           ch   = conn.create_channel
-          q    = ch.queue("ssumPredict")
+          q    = ch.queue(@@RabbitMQ_Queue)
           requestSurvey = {userId: @user.id.to_s,
                            requestTime: @report.requestTime,
                            reportId: @report.id.to_s,
