@@ -98,7 +98,7 @@ class ReportsController < ApplicationController
             conn = Bunny.new(:host => "expirit.co.kr", :vhost => "pushHost", :user => "ssumtago", password: @@rabbitMQ_secret)
             conn.start
             ch   = conn.create_channel
-            q    = ch.queue(@@RabbitMQ_Queue)
+            q    = ch.queue("ssum")
             requestSurvey = {userId: @user.id.to_s,
                              requestTime: report.requestTime,
                              reportId: report.id.to_s,
@@ -306,6 +306,7 @@ class ReportsController < ApplicationController
             # 20170909 대체
             @body = {
               "priority" => "high",
+	      "content_available" => true,
               "data" => {
                 "code":"200",
                 "body":{

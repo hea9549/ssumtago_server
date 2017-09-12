@@ -36,7 +36,10 @@ Rails.application.configure do
 
   # Print deprecation notices to the stderr.
   config.active_support.deprecation = :stderr
-
+  config.x.android_app_version = '1.0.0'
+  config.x.ios_app_version = '1.2.1'
+  config.x.server_app_version = '2.0.0'
+  config.x.db_version = '1.0.3'
   # Raises error for missing translations
   # config.action_view.raise_on_missing_translations = true
 end
