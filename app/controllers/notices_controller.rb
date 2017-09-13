@@ -25,6 +25,7 @@ class NoticesController < ApplicationController
               "Content-Type" => "application/json",
               "Authorization" => @@fcm_auth
             }
+            
             @body = {
               "priority" => "high",
               "data" => {
