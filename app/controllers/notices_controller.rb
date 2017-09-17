@@ -46,7 +46,7 @@ class NoticesController < ApplicationController
 
         return
       end
-        logger.info "[LINE:#{__LINE__}] fcm 보내는 중..."
+        logger.info "[LINE:#{__LINE__}] fcm 보내는 중... fcm값: #{fcmReceiver}"
         @headers = {
           "Content-Type" => "application/json",
           "Authorization" => @@fcm_auth
