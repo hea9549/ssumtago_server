@@ -37,44 +37,51 @@ class NoticesController < ApplicationController
         # userId에 해당하는 user가 있는지 확인
         puts params.inspect
         fcmReceiver = params[:topic]
-      end
-          logger.info "[LINE:#{__LINE__}] fcm 보내는 중..."
-          @headers = {
-            "Content-Type" => "application/json",
-            "Authorization" => @@fcm_auth
-          }
+      else
 
-          @body = {
-            "priority" => "high",
-            "content_available" => true,
-            "data" => {
-              "code":"100",
-              "body":{
-                "title" => params[:title],
-                "message" => params[:message],
-                "url" => params[:url]
-              },
-              "header": params[:header]
-            },
-            "to" => fcmReceiver
-          }
-          puts @body.to_json
-          @result = HTTParty.post(
-            "https://fcm.googleapis.com/fcm/send",
-            headers: @headers,
-            body: @body.to_json
-          )
-          case @result.code.to_i
-            when 200
-              logger.info "[LINE:#{__LINE__}] fcm 전송 성공 / 통신종료 "
-              @success = {success:"예측 결과 응답 저장 후 성공적으로 fcm으로 보냈습니다."}
-              render json: @success, status: :ok
-            when 401...600
-              logger.error "[LINE:#{__LINE__}] 통신 에러로 fcm 전송 실패 / 통신종료 "
-              @error = {msg:"서버 에러로 fcm전송에 실패했습니다.", code:"500", time:Time.now}
-              render json: @error, status: :internal_server_error
-          end
+        # 에러
+        logger.error "[LINE:#{__LINE__}] userId도 topic도 안보냄 / 통신종료"
+        @error = {msg: "userId도 topic도 안보냄.", code:"401", time:Time.now}
+        render json: @error, status: :unauthorized
+
+        return
       end
+        logger.info "[LINE:#{__LINE__}] fcm 보내는 중..."
+        @headers = {
+          "Content-Type" => "application/json",
+          "Authorization" => @@fcm_auth
+        }
+
+        @body = {
+          "priority" => "high",
+          "content_available" => true,
+          "data" => {
+            "code":"100",
+            "body":{
+              "title" => params[:title],
+              "message" => params[:message],
+              "url" => params[:url]
+            },
+            "header": params[:header]
+          },
+          "to" => fcmReceiver
+        }
+        puts @body.to_json
+        @result = HTTParty.post(
+          "https://fcm.googleapis.com/fcm/send",
+          headers: @headers,
+          body: @body.to_json
+        )
+        case @result.code.to_i
+          when 200
+            logger.info "[LINE:#{__LINE__}] fcm 전송 성공 / 통신종료 "
+            @success = {success:"예측 결과 응답 저장 후 성공적으로 fcm으로 보냈습니다."}
+            render json: @success, status: :ok
+          when 401...600
+            logger.error "[LINE:#{__LINE__}] 통신 에러로 fcm 전송 실패 / 통신종료 "
+            @error = {msg:"서버 에러로 fcm전송에 실패했습니다.", code:"500", time:Time.now}
+            render json: @error, status: :internal_server_error
+        end
     else
       logger.error "[LINE:#{__LINE__}] admin user가 아님 / 통신종료"
       @error = {msg: "admin이 아닙니다.", code:"401", time:Time.now}
