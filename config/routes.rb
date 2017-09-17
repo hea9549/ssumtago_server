@@ -22,7 +22,7 @@ Rails.application.routes.draw do
   get 'surveys/:surveyId' => 'surveys#show'
   post 'surveys' => 'surveys#create'
   patch 'surveys/:surveyId' => 'surveys#update'
-  delete 'surveys/:surveyId' => 'surveys#delete'
+  # delete 'surveys/:surveyId' => 'surveys#delete'
 
 
   # Ssums Controller 썸 관련 Route
@@ -56,6 +56,8 @@ Rails.application.routes.draw do
 
   ## 결과값 요청
   post 'predictResults/:reportId' => 'reports#result'
+  ## 특정 유저 알림 보내기
+  post 'notifications' => 'notices#notify'
 
   # PreviousReport Controller 설문지 관련 Route
   ## 설문지 만들기

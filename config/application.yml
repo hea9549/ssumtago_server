@@ -1,0 +1,23 @@
+# Add configuration values here, as shown below.
+#
+# pusher_app_id: "2954"
+# pusher_key: 7381a978f7dd7f9a1117
+# pusher_secret: abdc3b896a0ffb85d373
+# stripe_api_key: sk_test_2J0l093xOyW72XUYJHE4Dv2r
+# stripe_publishable_key: pk_test_ro9jV5SNwGb1yYlQfzG17LHK
+#
+# production:
+#   stripe_api_key: sk_live_EeHnL644i6zo4Iyq4v1KdV9H
+#   stripe_publishable_key: pk_live_9lcthxpSIHbGwmdO941O1XVU
+
+SECRET_KEY_BASE: '9f06437531b533c9acab0ebab52c176a641126f35bba1c2313a975238d5be2fbbe26457a71c1f448bc7fc13e12f96883f4f23ccb235d53b510a703eecc7e15dd'
+mongo_server_id: 'ssumtago'
+mongo_server_pwd: 'Tjaxkrh'
+HAMC_SECRET: '3d05e99a9462a0bf5a00e459b655c8c95d3873bb9cd6ef3ab603abe7471969d7ccb1d646798089851113086a5c70f81193c688a12ff443c3f9da43619e8b319c'
+RabbitMQ_pwd: 'Tjaxkrh'
+FCM_AUTHORIZATION: 'key=AAAAXq8WLYs:APA91bEuNpbkWAL5mu2XCIdNsV8DoLOd9BNBgbB9WgBFjT1GdgcUhcdEijpsc5soDGj2T9M9YQXO_NAVk2YGFVBpZNBzdViTCwfWf0uV2hHfn7P5Q-PbXxsn1LipS-ZZBCexdJiwcTbe'
+HS_TOKEN: 'e82aYCZuJ7Q:APA91bHORt061lpWdnHpInevhK6GOafzqY521E1oZKReLtj7G-70pczc3rzEt-AOvdjOxygDljprMlaf4I-IY5qiJsI2Hcf0TcoicUe70gY2-qB6bsUX46ox1YXVIXCNynCob9q8Mwdw'
+RabbitMQ_Queue: 'ssum'
+
+production:
+  RabbitMQ_Queue: 'ssumPredict'

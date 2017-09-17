@@ -8,6 +8,7 @@ class ReportsController < ApplicationController
   @@rabbitMQ_secret = ENV['RabbitMQ_pwd']
   @@fcm_auth = ENV['FCM_AUTHORIZATION']
   @@haesung_phone_token = ENV['HS_TOKEN']
+  @@RabbitMQ_Queue = ENV['RabbitMQ_Queue']
 
   # [GET] /predictReports/:id => 설문지를 불러오는 메서드 (check_jwt 메서드가 선행됨)
   def read_survey
@@ -97,7 +98,7 @@ class ReportsController < ApplicationController
             conn = Bunny.new(:host => "expirit.co.kr", :vhost => "pushHost", :user => "ssumtago", password: @@rabbitMQ_secret)
             conn.start
             ch   = conn.create_channel
-            q    = ch.queue("ssumPredict")
+            q    = ch.queue(@@RabbitMQ_Queue)
             requestSurvey = {userId: @user.id.to_s,
                              requestTime: report.requestTime,
                              reportId: report.id.to_s,
@@ -170,7 +171,7 @@ class ReportsController < ApplicationController
           conn = Bunny.new(:host => "expirit.co.kr", :vhost => "pushHost", :user => "ssumtago", password: @@rabbitMQ_secret)
           conn.start
           ch   = conn.create_channel
-          q    = ch.queue("ssumPredict")
+          q    = ch.queue(@@RabbitMQ_Queue)
           requestSurvey = {userId: @user.id.to_s,
                            requestTime: @report.requestTime,
                            reportId: @report.id.to_s,
@@ -240,7 +241,17 @@ class ReportsController < ApplicationController
       # begin report = user.ssums.find_by(id:params[:ssumId]).predictReports.find(params[:reportId])
       begin report = user.predictReports.find(params[:reportId])
         logger.info "[LINE:#{__LINE__}] report 찾기 성공, 해당 report에 결과 값 저장 중..."
-        report.result = params[:predictResults]
+        report.results = params[:results]
+        # 20170909 results를 배열로 변형
+        # report.results = params[results]
+        #
+        # params[results].each do |result|
+        #   myr = Result.new
+        #   myr.type = result[:type]
+        #   myr.score = result[:scores]
+        #   report.results << myr
+        # end
+
         report.is_processed = true
         report.response_time = DateTime.now
         if report.save
@@ -279,15 +290,30 @@ class ReportsController < ApplicationController
           #     "Content-Type" => "application/json",
           #     "Authorization" => @@fcm_auth
           #   }
+            # 20170909 아래 부분 주석화
+            # @body = {
+            #   "priority" => "high",
+            #   "notification" => {
+            #     "body" => "Background Message",
+            #     "title" => "결과가 도착했습니다! 지금 바로 확인하세요!"
+            #   },
+            #   "data" => {
+            #     "reportId" => report.id.to_s,
+            #     "result" => report.result
+            #   },
+            #   "to" => user.fcmToken
+            # }
+            # 20170909 대체
             @body = {
               "priority" => "high",
-              "notification" => {
-                "body" => "Background Message",
-                "title" => "결과가 도착했습니다! 지금 바로 확인하세요!"
-              },
+              "content_available" => true,
               "data" => {
-                "reportId" => report.id.to_s,
-                "result" => report.result
+                "code":"200",
+                "body":{
+                  "reportId" => report.id.to_s,
+                  "results" => report.results
+                },
+                "header": params[:header]
               },
               "to" => user.fcmToken
             }
@@ -335,7 +361,6 @@ class ReportsController < ApplicationController
       render json: @error, status: :bad_request
     end
   end
-
 
   # [POST] /fcm => 예측 결과값을 fcm으로 보내는 메서드
   # result 메서드 뒷부분에 합칠 예정
