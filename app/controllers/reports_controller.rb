@@ -243,9 +243,9 @@ class ReportsController < ApplicationController
         logger.info "[LINE:#{__LINE__}] report 찾기 성공, 해당 report에 결과 값 저장 중..."
         report.results = params[:results]
         # 20170909 results를 배열로 변형
-        # report.results = params[:predictResults]
+        # report.results = params[results]
         #
-        # params[:predictResults].each do |result|
+        # params[results].each do |result|
         #   myr = Result.new
         #   myr.type = result[:type]
         #   myr.score = result[:scores]
