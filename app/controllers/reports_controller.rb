@@ -241,7 +241,7 @@ class ReportsController < ApplicationController
       # begin report = user.ssums.find_by(id:params[:ssumId]).predictReports.find(params[:reportId])
       begin report = user.predictReports.find(params[:reportId])
         logger.info "[LINE:#{__LINE__}] report 찾기 성공, 해당 report에 결과 값 저장 중..."
-        report.results = params[:predictResults]
+        report.results = params[:results]
         # 20170909 results를 배열로 변형
         # report.results = params[:predictResults]
         #
