@@ -20,58 +20,60 @@ class NoticesController < ApplicationController
         puts params.inspect
         logger.info "[LINE:#{__LINE__}] userId에 해당하는 user 찾는 중..."
         begin receiver = User.find(params[:userId])
-            logger.info "[LINE:#{__LINE__}] fcm 보내는 중..."
-            @headers = {
-              "Content-Type" => "application/json",
-              "Authorization" => @@fcm_auth
-            }
-            
-            @body = {
-              "priority" => "high",
-              "content_available" => true,
-              "data" => {
-                "code":"100",
-                "body":{
-                  "title" => params[:title],
-                  "message" => params[:message],
-                  "url" => params[:url]
-                },
-                "header": params[:header]
-              },
-              "to" => receiver.fcmToken
-            }
-            puts @body.to_json
-            @result = HTTParty.post(
-              "https://fcm.googleapis.com/fcm/send",
-              headers: @headers,
-              body: @body.to_json
-            )
-            case @result.code.to_i
-              when 200
-                logger.info "[LINE:#{__LINE__}] fcm 전송 성공 / 통신종료 "
-                @success = {success:"예측 결과 응답 저장 후 성공적으로 fcm으로 보냈습니다."}
-                render json: @success, status: :ok
-              when 401...600
-                logger.error "[LINE:#{__LINE__}] 통신 에러로 fcm 전송 실패 / 통신종료 "
-                @error = {msg:"서버 에러로 fcm전송에 실패했습니다.", code:"500", time:Time.now}
-                render json: @error, status: :internal_server_error
-            end
+        fcmReceiver = receiver.fcmToken
         # user가 없다면 에러
         rescue Mongoid::Errors::DocumentNotFound
-          logger.error "[LINE:#{__LINE__}] userId에 해당하는 user가 없음 / 통신종료"
-          @error = {msg: "올바른 userId 값을 넣어주세요.", code:"400", time:Time.now}
-          render json: @error, status: :bad_request
-        rescue Mongoid::Errors::InvalidFind
-          logger.error "[LINE:#{__LINE__}] body에 userId가 없음 / 통신종료"
-          @error = {msg: "body에 userId 값을 넣어주세요.", code:"400", time:Time.now}
-          render json: @error, status: :bad_request
-        end
-      else
-        # 전체메세지
-        logger.info "[LINE:#{__LINE__}] 파라미터에 userId 없음 => 전체메세지"
-        @error = {msg: "아직 전체 메세지 개발이 안됐어용", code:"400", time:Time.now}
+        logger.error "[LINE:#{__LINE__}] userId에 해당하는 user가 없음 / 통신종료"
+        @error = {msg: "올바른 userId 값을 넣어주세요.", code:"400", time:Time.now}
         render json: @error, status: :bad_request
-        
+        rescue Mongoid::Errors::InvalidFind
+        logger.error "[LINE:#{__LINE__}] body에 userId가 없음 / 통신종료"
+        @error = {msg: "body에 userId 값을 넣어주세요.", code:"400", time:Time.now}
+        render json: @error, status: :bad_request
+        end
+      elsif params[:topic].present?
+        # 전체메세지
+        logger.info "[LINE:#{__LINE__}] 파라미터에 userId 확인 => 전체메세지"
+        # userId에 해당하는 user가 있는지 확인
+        puts params.inspect
+        fcmReceiver = params[:topic]
+      end
+          logger.info "[LINE:#{__LINE__}] fcm 보내는 중..."
+          @headers = {
+            "Content-Type" => "application/json",
+            "Authorization" => @@fcm_auth
+          }
+
+          @body = {
+            "priority" => "high",
+            "content_available" => true,
+            "data" => {
+              "code":"100",
+              "body":{
+                "title" => params[:title],
+                "message" => params[:message],
+                "url" => params[:url]
+              },
+              "header": params[:header]
+            },
+            "to" => fcmReceiver
+          }
+          puts @body.to_json
+          @result = HTTParty.post(
+            "https://fcm.googleapis.com/fcm/send",
+            headers: @headers,
+            body: @body.to_json
+          )
+          case @result.code.to_i
+            when 200
+              logger.info "[LINE:#{__LINE__}] fcm 전송 성공 / 통신종료 "
+              @success = {success:"예측 결과 응답 저장 후 성공적으로 fcm으로 보냈습니다."}
+              render json: @success, status: :ok
+            when 401...600
+              logger.error "[LINE:#{__LINE__}] 통신 에러로 fcm 전송 실패 / 통신종료 "
+              @error = {msg:"서버 에러로 fcm전송에 실패했습니다.", code:"500", time:Time.now}
+              render json: @error, status: :internal_server_error
+          end
       end
     else
       logger.error "[LINE:#{__LINE__}] admin user가 아님 / 통신종료"
