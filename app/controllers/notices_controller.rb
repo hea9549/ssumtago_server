@@ -41,8 +41,8 @@ class NoticesController < ApplicationController
 
         # 에러
         logger.error "[LINE:#{__LINE__}] userId도 topic도 안보냄 / 통신종료"
-        @error = {msg: "userId도 topic도 안보냄.", code:"401", time:Time.now}
-        render json: @error, status: :unauthorized
+        @error = {msg: "userId도 topic도 안보냄.", code:"400", time:Time.now}
+        render json: @error, status: :bad_request
 
         return
       end
