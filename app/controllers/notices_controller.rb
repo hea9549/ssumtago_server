@@ -48,8 +48,8 @@ class NoticesController < ApplicationController
             case @result.code.to_i
               when 200
                 logger.info "[LINE:#{__LINE__}] fcm 전송 성공 / 통신종료 "
-                # @success = {success:"예측 결과 응답 저장 후 성공적으로 fcm으로 보냈습니다."}
-                render json: report, status: :ok
+                @success = {success:"예측 결과 응답 저장 후 성공적으로 fcm으로 보냈습니다."}
+                render json: @success, status: :ok
               when 401...600
                 logger.error "[LINE:#{__LINE__}] 통신 에러로 fcm 전송 실패 / 통신종료 "
                 @error = {msg:"서버 에러로 fcm전송에 실패했습니다.", code:"500", time:Time.now}
