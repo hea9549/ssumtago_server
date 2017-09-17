@@ -28,6 +28,7 @@ class NoticesController < ApplicationController
             
             @body = {
               "priority" => "high",
+              "content_available" => true,
               "data" => {
                 "code":"100",
                 "body":{
